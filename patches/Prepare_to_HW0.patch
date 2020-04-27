@@ -7,7 +7,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 +++ src/main/java/ru/javawebinar/topjava/Main.java	(date 1524952636638)
 @@ -1,11 +1,8 @@
  package ru.javawebinar.topjava;
-
+ 
  /**
 - * User: gkislin
 - * Date: 05.08.2015
