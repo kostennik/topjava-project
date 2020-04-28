@@ -20,7 +20,8 @@ public class MapStorage implements Storage {
     }
 
     public Meal get(Integer id) {
-        return id != null ? map.get(id) : null;
+        Meal meal = map.get(id);
+        return meal != null ? meal : new Meal();
     }
 
     public void delete(Integer id) {
