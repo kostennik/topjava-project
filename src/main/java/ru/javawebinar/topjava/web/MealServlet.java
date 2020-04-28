@@ -10,7 +10,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.List;
@@ -23,13 +22,14 @@ public class MealServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         log.info("User meals was opened");
-        List<Meal> meals = DataMeal.getMeals();
 
         final LocalTime startTime = LocalTime.of(7, 0);
         final LocalTime endTime = LocalTime.of(22, 0);
         final int DEFAULT_CALORIES_PER_DAY = 2000;
+        List<Meal> meals = DataMeal.getMeals();
         List<MealTo> mealsTo = MealsUtil.getFiltered(meals, startTime, endTime, DEFAULT_CALORIES_PER_DAY);
+
         req.setAttribute("mealsTo", mealsTo);
-        resp.sendRedirect("meals.jsp");
+        req.getRequestDispatcher("/meals.jsp").forward(req, resp);
     }
 }
