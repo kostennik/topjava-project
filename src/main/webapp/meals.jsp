@@ -15,7 +15,7 @@
     <hr>
     <div class="d-flex justify-content-end">
     <form method="post" action="meals">
-        <input name="action" value="save" hidden>
+        <input name="action" value="add" hidden>
         <button type="submit" class="btn btn-success"><i class="fa fa-plus">  add meal</i></button>
     </form>
     </div>

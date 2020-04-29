@@ -20,7 +20,7 @@ public class MealServlet extends HttpServlet {
     private static final LocalTime END_TIME = LocalTime.of(23, 59);
     private static final int DEFAULT_CALORIES_PER_DAY = 2000;
 
-    private MapMealStorage storage = new MapMealStorage();
+    private MapMealStorage storage;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -44,14 +44,14 @@ public class MealServlet extends HttpServlet {
             resp.sendRedirect("meals");
             return;
         }
-        final int id = getId(req);
+        final Integer id = getId(req);
         Meal meal;
         switch (action) {
             case "create":
                 saveMeal(req, id);
                 resp.sendRedirect("meals");
                 return;
-            case "save":
+            case "add":
             case "edit":
                 meal = storage.get(id);
                 break;
@@ -66,7 +66,7 @@ public class MealServlet extends HttpServlet {
         req.getRequestDispatcher("/newMeal.jsp").forward(req, resp);
     }
 
-    private void saveMeal(HttpServletRequest req, int id) {
+    private void saveMeal(HttpServletRequest req, Integer id) {
         final LocalDateTime dateTime = LocalDateTime.parse(req.getParameter("date") + 'T' + req.getParameter("time"));
         final String description = req.getParameter("description");
         final int calories = Integer.parseInt(req.getParameter("calories"));
@@ -74,10 +74,9 @@ public class MealServlet extends HttpServlet {
         storage.save(meal);
     }
 
-    private int getId(HttpServletRequest req) {
+    private Integer getId(HttpServletRequest req) {
         final String reqId = req.getParameter("id");
-        final int notExistId = -1;
-        return reqId == null || reqId.isEmpty() ? notExistId : Integer.parseInt(reqId);
+        return reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId);
     }
 
     private List<MealTo> getMealsTo() {

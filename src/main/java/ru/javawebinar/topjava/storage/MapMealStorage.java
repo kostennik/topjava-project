@@ -28,17 +28,19 @@ public class MapMealStorage implements MealStorage {
         if (meal.getId() == null) {
             meal.setId(atomicId.getAndIncrement());
         }
-        return map.put(meal.getId(), meal);
+        map.put(meal.getId(), meal);
+        return map.get(meal.getId());
     }
 
     @Override
-    public Meal get(int id) {
-        return map.getOrDefault(id, new Meal());
+    public Meal get(Integer id) {
+        Meal meal = id != null ? map.get(id) : null;
+        return meal != null ? meal : new Meal();
     }
 
     @Override
-    public void delete(int id) {
-         map.remove(id);
+    public void delete(Integer id) {
+        if (id != null) map.remove(id);
     }
 
     @Override
