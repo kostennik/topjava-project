@@ -11,16 +11,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MapMealStorage implements MealStorage {
-    private static Map<Integer, Meal> map = new ConcurrentHashMap<>();
-    private static AtomicInteger atomicId = new AtomicInteger(0);
+    private Map<Integer, Meal> map = new ConcurrentHashMap<>();
+    private AtomicInteger atomicId = new AtomicInteger(0);
 
-    static {
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 30, 10, 0), "Завтрак", 500));
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 30, 13, 0), "Обед", 1000));
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 30, 20, 0), "Ужин", 500));
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 31, 10, 0), "Завтрак", 1000));
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед", 500));
-        map.put(atomicId.get(), new Meal(atomicId.getAndIncrement(), LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин", 510));
+    {
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 10, 0), "Завтрак", 500));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 13, 0), "Обед", 1000));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 20, 0), "Ужин", 500));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 10, 0), "Завтрак", 1000));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед", 500));
+        save(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин", 510));
     }
 
     @Override
