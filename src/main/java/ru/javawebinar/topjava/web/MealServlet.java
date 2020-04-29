@@ -3,6 +3,7 @@ package ru.javawebinar.topjava.web;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.storage.MapMealStorage;
+import ru.javawebinar.topjava.storage.MealStorage;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import javax.servlet.ServletConfig;
@@ -20,7 +21,7 @@ public class MealServlet extends HttpServlet {
     private static final LocalTime END_TIME = LocalTime.of(23, 59);
     private static final int DEFAULT_CALORIES_PER_DAY = 2000;
 
-    private MapMealStorage storage;
+    private MealStorage storage;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -34,6 +35,11 @@ public class MealServlet extends HttpServlet {
         final List<MealTo> mealsTo = getMealsTo();
         req.setAttribute("mealsTo", mealsTo);
         req.getRequestDispatcher("/meals.jsp").forward(req, resp);
+    }
+
+    private List<MealTo> getMealsTo() {
+        final List<Meal> meals = storage.getAll();
+        return MealsUtil.getFiltered(meals, START_TIME, END_TIME, DEFAULT_CALORIES_PER_DAY);
     }
 
     @Override
@@ -77,10 +83,5 @@ public class MealServlet extends HttpServlet {
     private Integer getId(HttpServletRequest req) {
         final String reqId = req.getParameter("id");
         return reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId);
-    }
-
-    private List<MealTo> getMealsTo() {
-        final List<Meal> meals = storage.getAll();
-        return MealsUtil.getFiltered(meals, START_TIME, END_TIME, DEFAULT_CALORIES_PER_DAY);
     }
 }
