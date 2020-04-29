@@ -9,15 +9,43 @@
 <div class="container">
     <form method="post" action="meals">
         <div class="form-group">
-            <input type="text" name="id" value="${meal.id}" hidden><br>
-            <label style="font-size: 20px;">date</label> <input class="form-control" type="datetime-local" name="date" value="${meal.dateTime}"
-                                       required><br>
-            <label style="font-size: 20px;">description</label> <input class="form-control" type="text" name="description"
-                                              value="${meal.description}" required><br>
-            <label style="font-size: 20px;">calories</label> <input class="form-control" type="text" name="calories" value="${meal.calories}"
-                                           required><br>
+            <jsp:useBean id="meal" scope="request" type="ru.javawebinar.topjava.model.Meal"/>
+            <input type="text"
+                   name="id"
+                   value="${meal.id}" hidden><br>
+            <label style="font-size: 20px;">
+                date
+                <div class="form-inline">
+                <input class="form-control"
+                       type="date"
+                       name="date"
+                       value="${meal.dateTime.toLocalDate()}"
+                       required>
+                <input class="form-control"
+                       type="time"
+                       name="time"
+                       value="${meal.dateTime.toLocalTime()}"
+                       required>
+                </div>
+            </label><br>
+            <label style="font-size: 20px;">
+                description
+                <input class="form-control"
+                       type="text"
+                       name="description"
+                       value="${meal.description}" required>
+            </label><br>
+            <label style="font-size: 20px;">
+                calories
+                <input class="form-control"
+                       type="number"
+                       name="calories"
+                       value="${meal.calories == "0" ? "" : meal.calories}"
+                       min="1"
+                       required>
+            </label><br>
             <button type="submit" class="btn btn-warning">Save</button>
-            <button type="button" class="btn btn-danger"  onClick="history.go(-1); return false;">Cancel</button>
+            <button type="button" class="btn btn-danger" onClick="history.go(-1); return false;">Cancel</button>
         </div>
     </form>
 </div>

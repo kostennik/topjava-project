@@ -3,7 +3,7 @@ package ru.javawebinar.topjava.web;
 import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
-import ru.javawebinar.topjava.storage.MapStorage;
+import ru.javawebinar.topjava.storage.MapMealStorage;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import javax.servlet.ServletConfig;
@@ -23,12 +23,12 @@ public class MealServlet extends HttpServlet {
     private static final LocalTime START_TIME = LocalTime.of(0, 0);
     private static final LocalTime END_TIME = LocalTime.of(23, 59);
     private static final int DEFAULT_CALORIES_PER_DAY = 2000;
-    private MapStorage storage = new MapStorage();
+    private MapMealStorage storage = new MapMealStorage();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        storage = new MapStorage();
+        storage = new MapMealStorage();
     }
 
     @Override
@@ -68,13 +68,14 @@ public class MealServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         log.info("post User meals running");
         req.setCharacterEncoding("UTF-8");
+
         final String reqId = req.getParameter("id");
         final Integer id = (reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId));
-        final LocalDateTime dateTime = LocalDateTime.parse(req.getParameter("date"));
+        final LocalDateTime dateTime = LocalDateTime.parse(req.getParameter("date") + 'T' + req.getParameter("time"));
         final String description = req.getParameter("description");
         final int calories = Integer.parseInt(req.getParameter("calories"));
+        final Meal meal = new Meal(id, dateTime, description, calories);
 
-        Meal meal = new Meal(id, dateTime, description, calories);
         storage.save(meal);
         resp.sendRedirect("meals");
     }
