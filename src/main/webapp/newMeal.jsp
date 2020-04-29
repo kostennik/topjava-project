@@ -8,6 +8,7 @@
 <body>
 <div class="container">
     <form method="post" action="meals">
+        <input name="action" value="create" hidden>
         <div class="form-group">
             <jsp:useBean id="meal" scope="request" type="ru.javawebinar.topjava.model.Meal"/>
             <input type="text"
@@ -16,16 +17,16 @@
             <label style="font-size: 20px;">
                 date
                 <div class="form-inline">
-                <input class="form-control"
-                       type="date"
-                       name="date"
-                       value="${meal.dateTime.toLocalDate()}"
-                       required>
-                <input class="form-control"
-                       type="time"
-                       name="time"
-                       value="${meal.dateTime.toLocalTime()}"
-                       required>
+                    <input class="form-control"
+                           type="date"
+                           name="date"
+                           value="${meal.dateTime.toLocalDate()}"
+                           required>
+                    <input class="form-control"
+                           type="time"
+                           name="time"
+                           value="${meal.dateTime.toLocalTime()}"
+                           required>
                 </div>
             </label><br>
             <label style="font-size: 20px;">
@@ -33,7 +34,8 @@
                 <input class="form-control"
                        type="text"
                        name="description"
-                       value="${meal.description}" required>
+                       value="${meal.description}"
+                       required>
             </label><br>
             <label style="font-size: 20px;">
                 calories

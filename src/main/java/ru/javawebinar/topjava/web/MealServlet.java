@@ -1,6 +1,5 @@
 package ru.javawebinar.topjava.web;
 
-import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.storage.MapMealStorage;
@@ -16,13 +15,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 public class MealServlet extends HttpServlet {
-    private static final Logger log = getLogger(MealServlet.class);
     private static final LocalTime START_TIME = LocalTime.of(0, 0);
     private static final LocalTime END_TIME = LocalTime.of(23, 59);
     private static final int DEFAULT_CALORIES_PER_DAY = 2000;
+
     private MapMealStorage storage = new MapMealStorage();
 
     @Override
@@ -33,22 +30,27 @@ public class MealServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        log.info("get User meals running");
+        req.setCharacterEncoding("UTF-8");
+        final List<MealTo> mealsTo = getMealsTo();
+        req.setAttribute("mealsTo", mealsTo);
+        req.getRequestDispatcher("/meals.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         req.setCharacterEncoding("UTF-8");
         final String action = req.getParameter("action");
-
         if (action == null) {
-            final List<Meal> meals = storage.getAll();
-            final List<MealTo> mealsTo = MealsUtil.getFiltered(meals, START_TIME, END_TIME, DEFAULT_CALORIES_PER_DAY);
-            req.setAttribute("mealsTo", mealsTo);
-            req.getRequestDispatcher("/meals.jsp").forward(req, resp);
+            resp.sendRedirect("meals");
             return;
         }
-
-        final String reqId = req.getParameter("id");
-        final Integer id = (reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId));
+        final int id = getId(req);
         Meal meal;
         switch (action) {
+            case "create":
+                saveMeal(req, id);
+                resp.sendRedirect("meals");
+                return;
             case "save":
             case "edit":
                 meal = storage.get(id);
@@ -64,19 +66,22 @@ public class MealServlet extends HttpServlet {
         req.getRequestDispatcher("/newMeal.jsp").forward(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        log.info("post User meals running");
-        req.setCharacterEncoding("UTF-8");
-
-        final String reqId = req.getParameter("id");
-        final Integer id = (reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId));
+    private void saveMeal(HttpServletRequest req, int id) {
         final LocalDateTime dateTime = LocalDateTime.parse(req.getParameter("date") + 'T' + req.getParameter("time"));
         final String description = req.getParameter("description");
         final int calories = Integer.parseInt(req.getParameter("calories"));
         final Meal meal = new Meal(id, dateTime, description, calories);
-
         storage.save(meal);
-        resp.sendRedirect("meals");
+    }
+
+    private int getId(HttpServletRequest req) {
+        final String reqId = req.getParameter("id");
+        final int notExistId = -1;
+        return reqId == null || reqId.isEmpty() ? notExistId : Integer.parseInt(reqId);
+    }
+
+    private List<MealTo> getMealsTo() {
+        final List<Meal> meals = storage.getAll();
+        return MealsUtil.getFiltered(meals, START_TIME, END_TIME, DEFAULT_CALORIES_PER_DAY);
     }
 }
