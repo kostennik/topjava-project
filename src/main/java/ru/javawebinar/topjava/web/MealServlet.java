@@ -1,9 +1,10 @@
 package ru.javawebinar.topjava.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.MealTo;
-import ru.javawebinar.topjava.storage.MapMealStorage;
-import ru.javawebinar.topjava.storage.MealStorage;
+import ru.javawebinar.topjava.repository.InMemoryMealRepository;
+import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import javax.servlet.ServletConfig;
@@ -13,75 +14,66 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 public class MealServlet extends HttpServlet {
-    private static final LocalTime START_TIME = LocalTime.of(0, 0);
-    private static final LocalTime END_TIME = LocalTime.of(23, 59);
-    private static final int DEFAULT_CALORIES_PER_DAY = 2000;
+    private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
 
-    private MealStorage storage;
+    private MealRepository repository;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        storage = new MapMealStorage();
+        repository = new InMemoryMealRepository();
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        final List<MealTo> mealsTo = getMealsTo();
-        req.setAttribute("mealsTo", mealsTo);
-        req.getRequestDispatcher("/meals.jsp").forward(req, resp);
-    }
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        String id = request.getParameter("id");
 
-    private List<MealTo> getMealsTo() {
-        final List<Meal> meals = storage.getAll();
-        return MealsUtil.getFiltered(meals, START_TIME, END_TIME, DEFAULT_CALORIES_PER_DAY);
+        Meal meal = new Meal(id.isEmpty() ? null : Integer.valueOf(id),
+                LocalDateTime.parse(request.getParameter("dateTime")),
+                request.getParameter("description"),
+                Integer.parseInt(request.getParameter("calories")));
+
+        log.info(meal.isNew() ? "Create {}" : "Update {}", meal);
+        repository.save(meal);
+        response.sendRedirect("meals");
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        req.setCharacterEncoding("UTF-8");
-        final String action = req.getParameter("action");
-        if (action == null) {
-            resp.sendRedirect("meals");
-            return;
-        }
-        final Integer id = getId(req);
-        Meal meal;
-        switch (action) {
-            case "create":
-                saveMeal(req, id);
-                resp.sendRedirect("meals");
-                return;
-            case "add":
-            case "edit":
-                meal = storage.get(id);
-                break;
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+
+        switch (action == null ? "all" : action) {
             case "delete":
-                storage.delete(id);
-                resp.sendRedirect("meals");
-                return;
+                int id = getId(request);
+                log.info("Delete {}", id);
+                repository.delete(id);
+                response.sendRedirect("meals");
+                break;
+            case "create":
+            case "update":
+                final Meal meal = "create".equals(action) ?
+                        new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", 1000) :
+                        repository.get(getId(request));
+                request.setAttribute("meal", meal);
+                request.getRequestDispatcher("/mealForm.jsp").forward(request, response);
+                break;
+            case "all":
             default:
-                throw new IllegalArgumentException("Action " + action + "is not valid");
+                log.info("getAll");
+                request.setAttribute("meals",
+                        MealsUtil.getTos(repository.getAll(), MealsUtil.DEFAULT_CALORIES_PER_DAY));
+                request.getRequestDispatcher("/meals.jsp").forward(request, response);
+                break;
         }
-        req.setAttribute("meal", meal);
-        req.getRequestDispatcher("/newMeal.jsp").forward(req, resp);
     }
 
-    private void saveMeal(HttpServletRequest req, Integer id) {
-        final LocalDateTime dateTime = LocalDateTime.parse(req.getParameter("date") + 'T' + req.getParameter("time"));
-        final String description = req.getParameter("description");
-        final int calories = Integer.parseInt(req.getParameter("calories"));
-        final Meal meal = new Meal(id, dateTime, description, calories);
-        storage.save(meal);
-    }
-
-    private Integer getId(HttpServletRequest req) {
-        final String reqId = req.getParameter("id");
-        return reqId == null || reqId.isEmpty() ? null : Integer.parseInt(reqId);
+    private int getId(HttpServletRequest request) {
+        String paramId = Objects.requireNonNull(request.getParameter("id"));
+        return Integer.parseInt(paramId);
     }
 }
