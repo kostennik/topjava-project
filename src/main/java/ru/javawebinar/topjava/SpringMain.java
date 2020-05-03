@@ -7,6 +7,8 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.web.user.AdminRestController;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 
 public class SpringMain {
     public static void main(String[] args) {
@@ -14,7 +16,7 @@ public class SpringMain {
         try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml")) {
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
             AdminRestController adminUserController = appCtx.getBean(AdminRestController.class);
-            adminUserController.create(new User(null, "userName", "email@mail.ru", "password", Role.ROLE_ADMIN));
+            adminUserController.create(new User(null, "userName", "email@mail.ru", "password", new HashSet<>(Collections.singletonList(Role.ROLE_ADMIN))));
         }
     }
 }
