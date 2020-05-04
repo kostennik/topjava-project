@@ -28,11 +28,14 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public Meal save(Meal meal, int userId) {
         log.info("save {}", meal);
-        Map<Integer, Meal> mealMap = repository.getOrDefault(userId, new HashMap<>());
-        meal.setId(counter.incrementAndGet());
-        mealMap.put(meal.getId(), meal);
-        repository.put(userId, mealMap);
-        return meal;
+        if (meal.isNew()) {
+            Map<Integer, Meal> mealMap = repository.getOrDefault(userId, new HashMap<>());
+            meal.setId(counter.incrementAndGet());
+            mealMap.put(meal.getId(), meal);
+            repository.put(userId, mealMap);
+            return meal;
+        }
+        return null;
     }
 
     @Override
