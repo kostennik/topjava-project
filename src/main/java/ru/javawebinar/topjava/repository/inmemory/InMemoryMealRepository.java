@@ -30,6 +30,7 @@ public class InMemoryMealRepository implements MealRepository {
         log.info("save {}", meal);
         Map<Integer, Meal> mealMap = repository.getOrDefault(userId, new HashMap<>());
         meal.setId(counter.incrementAndGet());
+        mealMap.put(meal.getId(), meal);
         repository.put(userId, mealMap);
         return meal;
     }
@@ -62,7 +63,7 @@ public class InMemoryMealRepository implements MealRepository {
         if (mealMap != null)
             return mealMap.values()
                     .stream()
-                    .sorted(Comparator.comparing(Meal::getDate).reversed())
+                    .sorted(Comparator.comparing(Meal::getDate).thenComparing(Meal::getTime).reversed())
                     .collect(Collectors.toList());
         return Collections.EMPTY_LIST;
     }
