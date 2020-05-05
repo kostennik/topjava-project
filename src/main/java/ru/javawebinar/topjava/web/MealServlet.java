@@ -6,7 +6,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
-import ru.javawebinar.topjava.util.MealFilter;
+import ru.javawebinar.topjava.util.DateTimeParser;
 import ru.javawebinar.topjava.web.meal.MealRestController;
 
 import javax.servlet.ServletConfig;
@@ -19,9 +19,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static ru.javawebinar.topjava.util.DateTimeUtil.isBetween;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
@@ -79,29 +76,37 @@ public class MealServlet extends HttpServlet {
                 break;
             case "all":
             default:
-                log.info("getAll");
+                String filter = request.getParameter("filter");
+                Collection<MealTo> filteredMealTos;
 
-                String startDate = request.getParameter("startDate");
-                String endDate = request.getParameter("endDate");
-                String startTime = request.getParameter("startTime");
-                String endTime = request.getParameter("endTime");
-                final MealFilter mealFilter = new MealFilter(startDate, endDate, startTime, endTime);
+                if (filter == null || filter.isEmpty()) {
+                    log.info("getAll");
+                    filteredMealTos = mealRestController.getAll();
+                } else {
+                    log.info("getAllFiltered");
+                    String startDate = request.getParameter("startDate");
+                    String endDate = request.getParameter("endDate");
+                    String startTime = request.getParameter("startTime");
+                    String endTime = request.getParameter("endTime");
+                    final DateTimeParser dateTimeParser = new DateTimeParser(startDate, endDate, startTime, endTime);
 
-                Collection<MealTo> filteredMealTos = mealRestController.getAll().stream()
-                        .filter(mealTo -> isBetween(mealTo.getDateTime().toLocalDate(), mealFilter.getStartDate(), mealFilter.getEndDate()))
-                        .filter(mealTo -> isBetween(mealTo.getDateTime().toLocalTime(), mealFilter.getStartTime(), mealFilter.getEndTime()))
-                        .collect(Collectors.toList());
+                    filteredMealTos = mealRestController.getAllFiltered(
+                            dateTimeParser.getStartDate(),
+                            dateTimeParser.getEndDate(),
+                            dateTimeParser.getStartTime(),
+                            dateTimeParser.getEndTime());
 
-                request.setAttribute("startDate", startDate);
-                request.setAttribute("endDate", endDate);
-                request.setAttribute("startTime", startTime);
-                request.setAttribute("endTime", endTime);
+                    request.setAttribute("startDate", startDate);
+                    request.setAttribute("endDate", endDate);
+                    request.setAttribute("startTime", startTime);
+                    request.setAttribute("endTime", endTime);
+                }
                 request.setAttribute("meals", filteredMealTos);
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
         }
     }
 
-    private int getId(HttpServletRequest request) {
+    protected static int getId(HttpServletRequest request) {
         String paramId = Objects.requireNonNull(request.getParameter("id"));
         return Integer.parseInt(paramId);
     }

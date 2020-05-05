@@ -20,12 +20,16 @@
 <section>
     <h3><a href="index.html">Home</a></h3>
     <hr/>
-    <form action="meals" method="get">
+    <form action="meals" method="get" style="display: inline-block;">
+        <input type="text" name="filter" value="filter" hidden>
         <input type="date" name="startDate" value="${startDate}">
         <input type="date" name="endDate" value="${endDate}">
         <input type="time" name="startTime" value="${startTime}">
         <input type="time" name="endTime" value="${endTime}">
         <button type="submit">Filter</button>
+    </form>
+    <form action="meals" method="get" style="display: inline-block;">
+        <button type="submit">Cancel</button>
     </form>
     <h2>Meals</h2>
     <a href="meals?action=create">Add Meal</a>
