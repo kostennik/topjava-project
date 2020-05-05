@@ -23,24 +23,27 @@ public class InMemoryUserRepository implements UserRepository {
     @Override
     public User save(User user) {
         log.info("save {}", user);
-        if (user.isNew()) {
-            user.setId(counter.incrementAndGet());
-            repository.put(user.getId(), user);
-            return user;
+        if (user != null) {
+            if (user.isNew()) {
+                user.setId(counter.incrementAndGet());
+                repository.put(user.getId(), user);
+                return user;
+            }
+            return repository.computeIfPresent(user.getId(), (id, oldUser) -> user);
         }
-        return repository.computeIfPresent(user.getId(), (id, oldUser) -> user);
-    }
-
-    @Override
-    public boolean delete(int id) {
-        log.info("delete {}", id);
-        return repository.remove(id) != null;
+        return null;
     }
 
     @Override
     public User get(int id) {
         log.info("get {}", id);
         return repository.get(id);
+    }
+
+    @Override
+    public boolean delete(int id) {
+        log.info("delete {}", id);
+        return repository.remove(id) != null;
     }
 
     @Override

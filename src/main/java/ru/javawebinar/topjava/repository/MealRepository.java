@@ -3,7 +3,7 @@ package ru.javawebinar.topjava.repository;
 import ru.javawebinar.topjava.model.Meal;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.List;
 
 public interface MealRepository {
     Meal save(Meal meal, int userId);
@@ -14,7 +14,7 @@ public interface MealRepository {
 
     Meal update(Meal meal, int userId);
 
-    Collection<Meal> getAll(int userId);
+    List<Meal> getAll(int userId);
 
-    Collection<Meal> getAllFilteredByDate(int userId, LocalDate start, LocalDate end);
+    List<Meal> getAllFilteredByDate(int userId, LocalDate start, LocalDate end);
 }

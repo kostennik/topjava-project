@@ -55,8 +55,9 @@ public class MealRestController {
 
     public List<MealTo> getAllFiltered(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
         log.info("getAllFiltered");
-        final DateTimeParser dateTimeParser = new DateTimeParser(startDate, endDate, startTime, endTime);
-        return service.getAllFiltered(authUserId(),
+        final DateTimeParser dateTimeParser = DateTimeParser.checkIfDateNullAndReturnDefaultDate(startDate, endDate, startTime, endTime);
+        return service.getAllFiltered(
+                authUserId(),
                 dateTimeParser.getStartDate(),
                 dateTimeParser.getEndDate(),
                 dateTimeParser.getStartTime(),

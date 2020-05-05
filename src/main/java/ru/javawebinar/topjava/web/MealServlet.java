@@ -17,11 +17,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
+
     private MealRestController mealRestController;
 
     @Override
@@ -77,9 +78,9 @@ public class MealServlet extends HttpServlet {
             case "all":
             default:
                 String filter = request.getParameter("filter");
-                Collection<MealTo> filteredMealTos;
+                List<MealTo> filteredMealTos;
 
-                if (filter == null || filter.isEmpty()) {
+                if (filter == null) {
                     log.info("getAll");
                     filteredMealTos = mealRestController.getAll();
                 } else {
@@ -88,7 +89,7 @@ public class MealServlet extends HttpServlet {
                     String endDate = request.getParameter("endDate");
                     String startTime = request.getParameter("startTime");
                     String endTime = request.getParameter("endTime");
-                    final DateTimeParser dateTimeParser = new DateTimeParser(startDate, endDate, startTime, endTime);
+                    final DateTimeParser dateTimeParser = DateTimeParser.parseStringToDate(startDate, endDate, startTime, endTime);
 
                     filteredMealTos = mealRestController.getAllFiltered(
                             dateTimeParser.getStartDate(),

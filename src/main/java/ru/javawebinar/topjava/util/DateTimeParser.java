@@ -9,25 +9,36 @@ public class DateTimeParser {
     private LocalTime startTime;
     private LocalTime endTime;
 
-    public DateTimeParser(String startDate, String endDate, String startTime, String endTime) {
-        if (!startDate.isEmpty())
-            this.startDate = LocalDate.parse(startDate);
-
-        if (!endDate.isEmpty())
-            this.endDate = LocalDate.parse(endDate);
-
-        if (!startTime.isEmpty())
-            this.startTime = LocalTime.parse(startTime);
-
-        if (!endTime.isEmpty())
-            this.endTime = LocalTime.parse(endTime);
+    private DateTimeParser() {
     }
 
-    public DateTimeParser(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        this.startDate = startDate != null ? startDate : LocalDate.MIN;
-        this.endDate = endDate != null ? endDate : LocalDate.MAX;
-        this.startTime = startTime != null ? startTime : LocalTime.MIN;
-        this.endTime = endTime != null ? endTime : LocalTime.MAX;
+    public static DateTimeParser parseStringToDate(String startDate, String endDate, String startTime, String endTime) {
+        DateTimeParser dateTimeParser = new DateTimeParser();
+
+        if (!startDate.isEmpty())
+            dateTimeParser.startDate = LocalDate.parse(startDate);
+
+        if (!endDate.isEmpty())
+            dateTimeParser.endDate = LocalDate.parse(endDate);
+
+        if (!startTime.isEmpty())
+            dateTimeParser.startTime = LocalTime.parse(startTime);
+
+        if (!endTime.isEmpty())
+            dateTimeParser.endTime = LocalTime.parse(endTime);
+
+        return dateTimeParser;
+    }
+
+    public static DateTimeParser checkIfDateNullAndReturnDefaultDate(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+        DateTimeParser dateTimeParser = new DateTimeParser();
+
+        dateTimeParser.startDate = startDate != null ? startDate : LocalDate.MIN;
+        dateTimeParser.endDate = endDate != null ? endDate : LocalDate.MAX;
+        dateTimeParser.startTime = startTime != null ? startTime : LocalTime.MIN;
+        dateTimeParser.endTime = endTime != null ? endTime : LocalTime.MAX;
+
+        return dateTimeParser;
     }
 
     public LocalDate getStartDate() {

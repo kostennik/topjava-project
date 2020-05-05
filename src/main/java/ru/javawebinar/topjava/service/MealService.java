@@ -9,7 +9,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,12 +41,12 @@ public class MealService {
     }
 
     public List<MealTo> getAll(int userId) {
-        final Collection<Meal> meals = repository.getAll(userId);
+        final List<Meal> meals = repository.getAll(userId);
         return MealsUtil.getTos(meals, MealsUtil.DEFAULT_CALORIES_PER_DAY);
     }
 
     public List<MealTo> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        final Collection<Meal> allFilteredByDate = repository.getAllFilteredByDate(userId, startDate, endDate);
+        final List<Meal> allFilteredByDate = repository.getAllFilteredByDate(userId, startDate, endDate);
         final List<MealTo> mealTos = MealsUtil.getTos(allFilteredByDate, MealsUtil.DEFAULT_CALORIES_PER_DAY);
         return mealTos.stream()
                 .filter(mealTo -> isBetween(mealTo.getDateTime().toLocalTime(), startTime, endTime))
