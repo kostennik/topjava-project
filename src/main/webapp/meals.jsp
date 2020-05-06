@@ -27,9 +27,7 @@
         <input type="time" name="startTime" id="startTime" value="${startTime}">
         <input type="time" name="endTime" id="endTime" value="${endTime}">
         <button type="submit">Filter</button>
-        <button type="submit"
-                onclick="document.getElementById('filter').remove();"
-                formaction="meals">Clear</button>
+        <button type="submit" onclick="document.getElementById('filter').remove();">Clear</button>
     </form>
     <h2>Meals</h2>
     <a href="meals?action=create">Add Meal</a>
