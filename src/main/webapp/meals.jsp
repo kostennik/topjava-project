@@ -20,15 +20,6 @@
 <section>
     <h3><a href="index.html">Home</a></h3>
     <hr/>
-    <form action="meals" id="filter-form" method="get" style="display: inline-block;">
-        <input type="text" name="filter" id="filter" value="filter" hidden>
-        <input type="date" name="startDate" id="startDate" value="${startDate}">
-        <input type="date" name="endDate" id="endDate" value="${endDate}">
-        <input type="time" name="startTime" id="startTime" value="${startTime}">
-        <input type="time" name="endTime" id="endTime" value="${endTime}">
-        <button type="submit">Filter</button>
-        <button type="submit" onclick="document.getElementById('filter').remove();">Clear</button>
-    </form>
     <h2>Meals</h2>
     <a href="meals?action=create">Add Meal</a>
     <br><br>
@@ -43,9 +34,12 @@
         </tr>
         </thead>
         <c:forEach items="${meals}" var="meal">
-            <jsp:useBean id="meal" type="ru.javawebinar.topjava.to.MealTo"/>
+            <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.MealTo"/>
             <tr class="${meal.excess ? 'excess' : 'normal'}">
                 <td>
+                        <%--${meal.dateTime.toLocalDate()} ${meal.dateTime.toLocalTime()}--%>
+                        <%--<%=TimeUtil.toString(meal.getDateTime())%>--%>
+                        <%--${fn:replace(meal.dateTime, 'T', ' ')}--%>
                         ${fn:formatDateTime(meal.dateTime)}
                 </td>
                 <td>${meal.description}</td>
