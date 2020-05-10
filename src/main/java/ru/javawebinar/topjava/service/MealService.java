@@ -4,15 +4,13 @@ import org.springframework.stereotype.Service;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.to.MealTo;
-import ru.javawebinar.topjava.util.MealsUtil;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static ru.javawebinar.topjava.util.DateTimeUtil.isBetween;
+import static ru.javawebinar.topjava.util.MealsUtil.*;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
 @Service
@@ -42,14 +40,11 @@ public class MealService {
 
     public List<MealTo> getAll(int userId) {
         final List<Meal> meals = repository.getAll(userId);
-        return MealsUtil.getTos(meals, MealsUtil.DEFAULT_CALORIES_PER_DAY);
+        return getTos(meals, DEFAULT_CALORIES_PER_DAY);
     }
 
     public List<MealTo> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
         final List<Meal> allFilteredByDate = repository.getAllFilteredByDate(userId, startDate, endDate);
-        final List<MealTo> mealTos = MealsUtil.getTos(allFilteredByDate, MealsUtil.DEFAULT_CALORIES_PER_DAY);
-        return mealTos.stream()
-                .filter(mealTo -> isBetween(mealTo.getDateTime().toLocalTime(), startTime, endTime))
-                .collect(Collectors.toList());
+        return getFilteredTos(allFilteredByDate, DEFAULT_CALORIES_PER_DAY, startTime, endTime);
     }
 }
