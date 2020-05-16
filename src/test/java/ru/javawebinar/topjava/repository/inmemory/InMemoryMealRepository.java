@@ -10,6 +10,7 @@ import ru.javawebinar.topjava.util.Util;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Collections;
@@ -27,7 +28,6 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 public class InMemoryMealRepository implements MealRepository {
     private static final Logger log = LoggerFactory.getLogger(InMemoryMealRepository.class);
 
-    // Map  userId -> mealRepository
     private Map<Integer, InMemoryBaseRepository<Meal>> usersMealsMap = new ConcurrentHashMap<>();
 
     {
@@ -72,8 +72,8 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public List<Meal> getBetween(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        return getAllFiltered(userId, meal -> Util.isBetweenInclusive(meal.getDateTime(), startDateTime, endDateTime));
+    public List<Meal> getBetween(LocalDate startDate, LocalDate endDate, int userId) {
+        return getAllFiltered(userId, meal -> Util.isBetweenInclusive(meal.getDate(), startDate, endDate));
     }
 
     private List<Meal> getAllFiltered(int userId, Predicate<Meal> filter) {
