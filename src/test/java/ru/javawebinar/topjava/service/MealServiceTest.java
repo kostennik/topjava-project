@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Collections;
+import java.util.List;
 
 import static ru.javawebinar.topjava.MealTestData.assertMatch;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -99,14 +100,16 @@ public class MealServiceTest {
 
     @Test
     public void getBetweenDates() {
-        assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 22), LocalDate.of(2019, Month.OCTOBER, 22), USER_ID), MEAL_6, MEAL_5, MEAL_4);
-        assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 20), LocalDate.of(2019, Month.OCTOBER, 20), USER_ID), MEAL_3, MEAL_2, MEAL_1);
-        assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 20), LocalDate.of(2019, Month.OCTOBER, 22), USER_ID), MEAL_LIST_USER);
+        final LocalDate startDate = LocalDate.of(2019, Month.OCTOBER, 22);
+        final LocalDate endDate = LocalDate.of(2019, Month.OCTOBER, 22);
+        final List<Meal> actual = service.getBetweenDates(startDate, endDate, USER_ID);
+        assertMatch(actual, MEAL_6, MEAL_5, MEAL_4);
+        assertMatchIsBetweenDates(actual, startDate, endDate);
     }
 
     @Test
     public void getBetweenDatesNotExist() {
         assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 21), LocalDate.of(2019, Month.OCTOBER, 21), USER_ID), Collections.emptyList());
-        assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 22), LocalDate.of(2019, Month.OCTOBER, 22), NOT_EXIST_ID), Collections.emptyList());
+        assertMatch(service.getBetweenDates(LocalDate.of(2019, Month.OCTOBER, 20), LocalDate.of(2019, Month.OCTOBER, 22), NOT_EXIST_ID), Collections.emptyList());
     }
 }

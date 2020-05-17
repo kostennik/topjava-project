@@ -2,6 +2,7 @@ package ru.javawebinar.topjava;
 
 import ru.javawebinar.topjava.model.Meal;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -33,5 +34,11 @@ public class MealTestData {
 
     public static void assertMatch(Iterable<Meal> actual, Iterable<Meal> expected) {
         assertThat(actual).usingFieldByFieldElementComparator().isEqualTo(expected);
+    }
+
+    public static void assertMatchIsBetweenDates(Iterable<Meal> actual, LocalDate startDate, LocalDate endDate) {
+        actual.forEach(meal -> assertThat(meal.getDate()).isBetween(
+                startDate != null ? startDate : LocalDate.MIN,
+                endDate != null ? endDate : LocalDate.MAX));
     }
 }
