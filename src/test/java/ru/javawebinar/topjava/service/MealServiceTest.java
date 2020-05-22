@@ -3,6 +3,7 @@ package ru.javawebinar.topjava.service;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
@@ -13,6 +14,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import java.time.LocalDate;
 import java.time.Month;
 
+import static java.time.LocalDateTime.of;
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
@@ -86,10 +88,25 @@ public class MealServiceTest {
         assertMatch(service.getAll(USER_ID), MEALS);
     }
 
+    @Test(expected = DataIntegrityViolationException.class)
+    public void createDuplicateDateTime() {
+        Meal meal = new Meal(of(2015, Month.MAY, 30, 13, 0), "Обед", 1000);
+        service.create(meal, USER_ID);
+    }
+
     @Test
     public void getBetween() throws Exception {
         assertMatch(service.getBetweenDates(
                 LocalDate.of(2015, Month.MAY, 30),
-                LocalDate.of(2015, Month.MAY, 30), USER_ID), MEAL3, MEAL2, MEAL1);
+                LocalDate.of(2015, Month.MAY, 30),
+                USER_ID), MEAL3, MEAL2, MEAL1);
+        assertMatch(service.getBetweenDates(
+                null,
+                LocalDate.of(2015, Month.MAY, 30),
+                USER_ID), MEAL3, MEAL2, MEAL1);
+        assertMatch(service.getBetweenDates(
+                LocalDate.of(2015, Month.MAY, 31),
+                null,
+                USER_ID), MEAL6, MEAL5, MEAL4);
     }
 }
