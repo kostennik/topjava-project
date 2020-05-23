@@ -25,7 +25,7 @@ public class TimeWatcher extends TestWatcher {
         String methodName = description.getMethodName();
         log.info("Test {} time: {} ms.", methodName, duration);
         totalTime += duration;
-        report.append(String.format("\n | %-30s | %5s |", methodName, duration));
+        report.append(String.format("\n | %-30s | %8s |", methodName, duration));
         startTime = 0L;
     }
 
@@ -36,13 +36,13 @@ public class TimeWatcher extends TestWatcher {
         report.append("\n" + "____________________________________________");
         report.append(String.format("\n %-10s %s", "", arr[arr.length - 1]));
         report.append("\n" + "____________________________________________");
-        report.append(String.format("\n | %-30s | %5s |", "TEST NAME", "TIME"));
+        report.append(String.format("\n | %-30s | %8s |", "TEST NAME", "TIME(ms)"));
         report.append("\n" + "____________________________________________");
     }
 
     public static String getReport() {
         report.append("\n" + "____________________________________________");
-        report.append(String.format("\n | %-30s | %5s |", "TOTAL", totalTime));
+        report.append(String.format("\n | %-30s | %8s |", "TOTAL", totalTime));
         report.append("\n" + "____________________________________________");
         return report.toString();
     }
