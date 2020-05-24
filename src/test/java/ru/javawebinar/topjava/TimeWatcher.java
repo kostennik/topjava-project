@@ -33,17 +33,17 @@ public class TimeWatcher extends TestWatcher {
         report = new StringBuilder();
         totalTime = 0L;
         String[] arr = className.split("\\.");
-        report.append("\n" + "____________________________________________");
+        report.append("\n" + "______________________________________________");
         report.append(String.format("\n %-10s %s", "", arr[arr.length - 1]));
-        report.append("\n" + "____________________________________________");
+        report.append("\n" + "______________________________________________");
         report.append(String.format("\n | %-30s | %8s |", "TEST NAME", "TIME(ms)"));
-        report.append("\n" + "____________________________________________");
+        report.append("\n" + "______________________________________________");
     }
 
     public static String getReport() {
-        report.append("\n" + "____________________________________________");
+        report.append("\n" + "______________________________________________");
         report.append(String.format("\n | %-30s | %8s |", "TOTAL", totalTime));
-        report.append("\n" + "____________________________________________");
+        report.append("\n" + "______________________________________________");
         return report.toString();
     }
 }
