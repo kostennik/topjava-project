@@ -9,7 +9,6 @@ import ru.javawebinar.topjava.util.DateTimeUtil;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
@@ -33,8 +32,8 @@ public class MealService {
 
     public List<Meal> getBetweenDates(@Nullable LocalDate startDate, @Nullable LocalDate endDate, int userId) {
         return repository.getBetween(
-                DateTimeUtil.createDateTime(startDate, LocalDate.now().minusYears(100), LocalTime.MIN),
-                DateTimeUtil.createDateTime(endDate, LocalDate.now().plusYears(100), LocalTime.MAX.truncatedTo(ChronoUnit.SECONDS)),
+                DateTimeUtil.createDateTime(startDate, LocalDate.MIN, LocalTime.MIN),
+                DateTimeUtil.createDateTime(endDate, LocalDate.MAX, LocalTime.MAX),
                 userId);
     }
 

@@ -1,43 +1,18 @@
 package ru.javawebinar.topjava.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-@NamedQueries({
-        @NamedQuery(name = Meal.UPDATE, query = "UPDATE Meal m SET m.description=:description, m.calories=:calories, m.dateTime=:date_time WHERE m.id=:id AND m.user.id=:user_id"),
-        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:user_id"),
-        @NamedQuery(name = Meal.ALL, query = "SELECT m FROM Meal m WHERE m.user.id=:user_id ORDER BY m.dateTime desc"),
-        @NamedQuery(name = Meal.ALL_FILTERED, query = "SELECT m FROM Meal m WHERE m.user.id=:user_id AND m.dateTime BETWEEN :startDate AND :endDate ORDER BY m.dateTime desc")
-})
-@Entity
-@Table(name = "meals", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date_time"})})
 public class Meal extends AbstractBaseEntity {
-
-    public static final String UPDATE = "Meal.update";
-    public static final String DELETE = "Meal.delete";
-    public static final String ALL = "Meal.getAll";
-    public static final String ALL_FILTERED = "Meal.getAllFiltered";
-
-    @Column(name = "date_time", nullable = false)
-    @NotNull
     private LocalDateTime dateTime;
 
-    @Column(name = "description", nullable = false)
-    @NotBlank
-    @Size(min = 2, max = 120)
     private String description;
 
-    @Column(name = "calories", nullable = false)
-    @NotNull
-    @Min(-1_000)
-    @Max(10_000)
     private int calories;
 
-    @JoinColumn(name = "user_id")
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 

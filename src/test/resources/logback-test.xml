@@ -7,8 +7,7 @@
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <charset>UTF-8</charset>
-<!--            http://logback.qos.ch/manual/layouts.html-->
-            <pattern>%yellow(%d{HH:mm:ss.SSS}) %highlight(%-5level) %class{50}.%M:%L - %gray(%msg%n)</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %class{50}.%M:%L - %msg%n</pattern>
         </encoder>
     </appender>
 
