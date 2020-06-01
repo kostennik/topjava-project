@@ -14,4 +14,5 @@ public class DataJpaMealServiceTest extends MealServiceTest {
     public static void beforeClassFunction() {
         TimeWatcher.initReport(MethodHandles.lookup().lookupClass().getSimpleName());
     }
+
 }
