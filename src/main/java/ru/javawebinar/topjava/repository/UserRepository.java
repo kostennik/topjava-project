@@ -19,5 +19,7 @@ public interface UserRepository {
 
     List<User> getAll();
 
-    User getUWithMeals(int id);
+    default User getWithMeals(int id) {
+        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support method getUWithMeals.");
+    }
 }

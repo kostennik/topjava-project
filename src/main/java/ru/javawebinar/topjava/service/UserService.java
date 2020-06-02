@@ -40,7 +40,7 @@ public class UserService {
     }
 
     public User getWithMeals(int id) throws NotFoundException {
-        return checkNotFoundWithId(repository.getUWithMeals(id), id);
+        return checkNotFoundWithId(repository.getWithMeals(id), id);
     }
 
     public User getByEmail(String email) throws NotFoundException {

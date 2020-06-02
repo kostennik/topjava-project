@@ -14,15 +14,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class JpaUserRepository implements UserRepository {
 
-/*
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    private Session openSession() {
-        return sessionFactory.getCurrentSession();
-    }
-*/
-
     @PersistenceContext
     private EntityManager em;
 
@@ -61,10 +52,5 @@ public class JpaUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         return em.createNamedQuery(User.ALL_SORTED, User.class).getResultList();
-    }
-
-    @Override
-    public User getUWithMeals(int id) {
-        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support method getUWithMeals.");
     }
 }

@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,6 +32,9 @@ public class JdbcMealRepository implements MealRepository {
 
     private final SimpleJdbcInsert insertMeal;
 
+    private Converter converter = dateTime ->
+            Profiles.getActiveDbProfile().equals(Profiles.HSQL_DB) ? Timestamp.valueOf((LocalDateTime) dateTime) : dateTime;
+
     public JdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.insertMeal = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("meals")
@@ -46,7 +50,7 @@ public class JdbcMealRepository implements MealRepository {
                 .addValue("id", meal.getId())
                 .addValue("description", meal.getDescription())
                 .addValue("calories", meal.getCalories())
-                .addValue("date_time", convertDateTime(meal.getDateTime()))
+                .addValue("date_time", converter.convert(meal.getDateTime()))
                 .addValue("user_id", userId);
 
         if (meal.isNew()) {
@@ -86,10 +90,6 @@ public class JdbcMealRepository implements MealRepository {
     public List<Meal> getBetweenInclusive(LocalDate startDate, LocalDate endDate, int userId) {
         return jdbcTemplate.query(
                 "SELECT * FROM meals WHERE user_id=? AND date_time >=? AND date_time < ? ORDER BY date_time DESC",
-                ROW_MAPPER, userId, convertDateTime(getStartInclusive(startDate)), convertDateTime(getEndExclusive(endDate)));
-    }
-
-    private Object convertDateTime(LocalDateTime dateTime) {
-        return Profiles.getActiveDbProfile().equals(Profiles.HSQL_DB) ? Timestamp.valueOf(dateTime) : dateTime;
+                ROW_MAPPER, userId, converter.convert(getStartInclusive(startDate)), converter.convert(getEndExclusive(endDate)));
     }
 }
