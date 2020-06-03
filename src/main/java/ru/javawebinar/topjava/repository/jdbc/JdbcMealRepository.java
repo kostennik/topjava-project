@@ -32,8 +32,8 @@ public class JdbcMealRepository implements MealRepository {
 
     private final SimpleJdbcInsert insertMeal;
 
-    private Converter converter = dateTime ->
-            Profiles.getActiveDbProfile().equals(Profiles.HSQL_DB) ? Timestamp.valueOf((LocalDateTime) dateTime) : dateTime;
+    private Converter<LocalDateTime, ?> converter = dateTime ->
+            Profiles.getActiveDbProfile().equals(Profiles.HSQL_DB) ? Timestamp.valueOf(dateTime) : dateTime;
 
     public JdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.insertMeal = new SimpleJdbcInsert(jdbcTemplate)
