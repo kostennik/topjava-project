@@ -8,14 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.User;
 
 @Transactional(readOnly = true)
-interface CrudUserRepository extends JpaRepository<User, Integer> {
+public interface CrudUserRepository extends JpaRepository<User, Integer> {
     @Transactional
     @Modifying
+//    @Query(name = User.DELETE)
     @Query("DELETE FROM User u WHERE u.id=:id")
     int delete(@Param("id") int id);
 
     User getByEmail(String email);
-
-    @Query("SELECT u from User u LEFT JOIN FETCH u.roles LEFT JOIN FETCH u.meals m WHERE u.id=:id ORDER BY m.dateTime desc")
-    User getWithMeals(@Param("id") int id);
 }
