@@ -10,47 +10,33 @@ import java.util.concurrent.TimeUnit;
 
 public class TimingRules {
     private static final Logger log = LoggerFactory.getLogger("result");
-    private static StringBuilder report = new StringBuilder();
-    private static final String REPORT_LINE = "\n" + "_".repeat(36);
-    private static long totalTime;
 
+    private static StringBuilder results = new StringBuilder();
 
+    //    https://dzone.com/articles/applying-new-jdk-11-string-methods
+    private static String DELIM = "-".repeat(103);
+
+    // http://stackoverflow.com/questions/14892125/what-is-the-best-practice-to-determine-the-execution-time-of-the-bussiness-relev
     public static final Stopwatch STOPWATCH = new Stopwatch() {
-        private String className;
-
         @Override
         protected void finished(long nanos, Description description) {
-            if (totalTime == 0) {
-                setResultHeader(description);
-            }
-            long totalTime = TimeUnit.NANOSECONDS.toMillis(nanos);
-            report.append(String.format("\n %-25s %8d", description.getMethodName(), totalTime));
-            log.info("\n {} : {} {} ms\n", className, description.getMethodName(),totalTime);
-            TimingRules.totalTime += totalTime;
-        }
-
-        private void setResultHeader(Description description) {
-            String[] arr = description.getDisplayName().split("\\.");
-            className = arr[arr.length - 1].split("\\)")[0];
-            report.append(String.format("\n %-5s %s", "", className));
-            report.append(REPORT_LINE);
-            report.append(String.format("\n %-25s %8s", "TEST NAME", "TIME(ms)"));
-            report.append(REPORT_LINE);
+            String result = String.format("%-95s %7d", description.getDisplayName(), TimeUnit.NANOSECONDS.toMillis(nanos));
+            results.append(result).append('\n');
+            log.info(result + " ms\n");
         }
     };
 
     public static final ExternalResource SUMMARY = new ExternalResource() {
         @Override
-        protected void before() {
-            totalTime = 0L;
-            report = new StringBuilder();
+        protected void before() throws Throwable {
+            results.setLength(0);
         }
 
         @Override
         protected void after() {
-            report.append(REPORT_LINE);
-            report.append(String.format("\n %-25s %8s \n", "TOTAL", totalTime));
-            log.info(report.toString());
+            log.info("\n" + DELIM +
+                    "\nTest                                                                                       Duration, ms" +
+                    "\n" + DELIM + "\n" + results + DELIM + "\n");
         }
     };
 }
