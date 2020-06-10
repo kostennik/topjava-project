@@ -13,35 +13,35 @@ public class DataJpaUserRepository implements UserRepository {
     private static final Sort SORT_NAME_EMAIL = Sort.by(Sort.Direction.ASC, "name", "email");
 
     @Autowired
-    private CrudUserRepository userRepository;
+    private CrudUserRepository crudRepository;
 
     @Override
     public User save(User user) {
-        return userRepository.save(user);
+        return crudRepository.save(user);
     }
 
     @Override
     public boolean delete(int id) {
-        return userRepository.delete(id) != 0;
+        return crudRepository.delete(id) != 0;
     }
 
     @Override
     public User get(int id) {
-        return userRepository.findById(id).orElse(null);
+        return crudRepository.findById(id).orElse(null);
     }
 
     @Override
     public User getByEmail(String email) {
-        return userRepository.getByEmail(email);
+        return crudRepository.getByEmail(email);
     }
 
     @Override
     public List<User> getAll() {
-        return userRepository.findAll(SORT_NAME_EMAIL);
+        return crudRepository.findAll(SORT_NAME_EMAIL);
     }
 
     @Override
     public User getWithMeals(int id) {
-        return userRepository.getWithMeals(id);
+        return crudRepository.getWithMeals(id);
     }
 }
