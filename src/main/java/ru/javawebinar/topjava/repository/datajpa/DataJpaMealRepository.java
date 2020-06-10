@@ -1,55 +1,63 @@
 package ru.javawebinar.topjava.repository.datajpa;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
+import static ru.javawebinar.topjava.util.DateTimeUtil.getEndExclusive;
+import static ru.javawebinar.topjava.util.DateTimeUtil.getStartInclusive;
+
 @Repository
+@Transactional(readOnly = true)
 public class DataJpaMealRepository implements MealRepository {
 
-    @Autowired
-    private CrudMealRepository crudMealRepository;
+    private final CrudMealRepository mealRepository;
+    private final CrudUserRepository userRepository;
 
-    @Autowired
-    private CrudUserRepository crudUserRepository;
+    public DataJpaMealRepository(CrudMealRepository mealRepository, CrudUserRepository userRepository) {
+        this.mealRepository = mealRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     @Transactional
     public Meal save(Meal meal, int userId) {
-        if (!meal.isNew() && get(meal.getId(), userId) == null) {
-            return null;
+        if (meal.isNew() || get(meal.getId(), userId) != null) {
+            meal.setUser(userRepository.getOne(userId));
+            return mealRepository.save(meal);
         }
-        meal.setUser(crudUserRepository.getOne(userId));
-        return crudMealRepository.save(meal);
+        return null;
     }
 
     @Override
+    @Transactional
     public boolean delete(int id, int userId) {
-        return crudMealRepository.delete(id, userId) != 0;
+        return mealRepository.deleteMealByIdAndUserId(id, userId) != 0;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        return crudMealRepository.findById(id).filter(meal -> meal.getUser().getId() == userId).orElse(null);
+        Meal meal = mealRepository.findById(id).orElse(null);
+        return meal != null && meal.getUser().getId() == userId ? meal : null;
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        return crudMealRepository.getAll(userId);
+        return mealRepository.findAllByUserIdOrderByDateTimeDesc(userId);
     }
 
     @Override
-    public List<Meal> getBetweenInclusive(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        return crudMealRepository.getBetween(startDateTime, endDateTime, userId);
+    public List<Meal> getBetweenInclusive(LocalDate startDate, LocalDate endDate, int userId) {
+        return mealRepository.findAllByUserIdAndDateTimeGreaterThanEqualAndDateTimeLessThanOrderByDateTimeDesc(
+                userId, getStartInclusive(startDate), getEndExclusive(endDate));
     }
 
     @Override
     public Meal getWithUser(int id, int userId) {
-        return crudMealRepository.getWithUser(id, userId);
+        return mealRepository.getWithUser(id, userId);
     }
 }

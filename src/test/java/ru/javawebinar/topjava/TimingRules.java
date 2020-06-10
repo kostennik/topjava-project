@@ -1,6 +1,5 @@
 package ru.javawebinar.topjava;
 
-import org.junit.rules.ExternalResource;
 import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
@@ -8,35 +7,33 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class TimingRules {
+public class TimingRules extends Stopwatch {
     private static final Logger log = LoggerFactory.getLogger("result");
+    private static final String DIVIDER = "\n" + "-".repeat(36);
+    private static StringBuilder report = new StringBuilder();
+    private static long totalTime;
 
-    private static StringBuilder results = new StringBuilder();
+    @Override
+    protected void finished(long nanos, Description description) {
+        if (totalTime == 0) addHeader(description);
+        long duration = TimeUnit.NANOSECONDS.toMillis(nanos);
+        totalTime += duration;
+        String result = String.format("\n %-25s %8s", description.getMethodName(), duration);
+        report.append(result);
+        log.info(result + " ms");
+    }
 
-    //    https://dzone.com/articles/applying-new-jdk-11-string-methods
-    private static String DELIM = "-".repeat(103);
+    private void addHeader(Description description) {
+        String[] arr = description.getClassName().split("\\.");
+        report.append(String.format("\n %-5s %s", "", arr[arr.length - 1]));
+        report.append(DIVIDER);
+    }
 
-    // http://stackoverflow.com/questions/14892125/what-is-the-best-practice-to-determine-the-execution-time-of-the-bussiness-relev
-    public static final Stopwatch STOPWATCH = new Stopwatch() {
-        @Override
-        protected void finished(long nanos, Description description) {
-            String result = String.format("%-95s %7d", description.getDisplayName(), TimeUnit.NANOSECONDS.toMillis(nanos));
-            results.append(result).append('\n');
-            log.info(result + " ms\n");
-        }
-    };
-
-    public static final ExternalResource SUMMARY = new ExternalResource() {
-        @Override
-        protected void before() throws Throwable {
-            results.setLength(0);
-        }
-
-        @Override
-        protected void after() {
-            log.info("\n" + DELIM +
-                    "\nTest                                                                                       Duration, ms" +
-                    "\n" + DELIM + "\n" + results + DELIM + "\n");
-        }
-    };
+    public static void getReport() {
+        report.append(DIVIDER);
+        report.append(String.format("\n %-25s %8s \n", "TOTAL (ms)", totalTime));
+        log.info(report.toString());
+        totalTime = 0;
+        report = new StringBuilder();
+    }
 }
