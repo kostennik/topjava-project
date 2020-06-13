@@ -56,8 +56,14 @@
                 </td>
                 <td>${meal.description}</td>
                 <td>${meal.calories}</td>
-                <td><a href="meals?action=update&id=${meal.id}">Update</a></td>
-                <td><a href="meals?action=delete&id=${meal.id}">Delete</a></td>
+                <td><form method="post" action="get">
+                    <input type="id" name="id" value="${meal.id}" hidden>
+                    <input type="submit" value="Update">
+                </form></td>
+                <td><form name="delete" method="post" action="delete">
+                    <input type="id" name="id" value="${meal.id}" hidden>
+                    <input type="submit" value="Delete">
+                </form></td>
             </tr>
         </c:forEach>
     </table>
