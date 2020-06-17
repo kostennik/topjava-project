@@ -49,15 +49,13 @@ public class JdbcUserRepository implements UserRepository {
         } else {
             jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.getId());
         }
-        if(user.getRoles() != null && !user.getRoles().isEmpty()) {
-            jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)",
-                    user.getRoles(),
-                    user.getRoles().size(),
-                    (ps, role) -> {
-                        ps.setInt(1, user.getId());
-                        ps.setString(2, role.name());
-                    });
-        }
+        jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)",
+                user.getRoles(),
+                user.getRoles().size(),
+                (ps, role) -> {
+                    ps.setInt(1, user.getId());
+                    ps.setString(2, role.name());
+                });
         return user;
     }
 
