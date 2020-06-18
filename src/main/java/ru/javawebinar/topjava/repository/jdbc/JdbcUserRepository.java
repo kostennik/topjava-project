@@ -49,13 +49,15 @@ public class JdbcUserRepository implements UserRepository {
         } else {
             jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.getId());
         }
-        jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)",
-                user.getRoles(),
-                user.getRoles().size(),
-                (ps, role) -> {
-                    ps.setInt(1, user.getId());
-                    ps.setString(2, role.name());
-                });
+        if(!user.getRoles().isEmpty()) {
+            jdbcTemplate.batchUpdate("INSERT INTO user_roles (user_id, role) VALUES (?, ?)",
+                    user.getRoles(),
+                    user.getRoles().size(),
+                    (ps, role) -> {
+                        ps.setInt(1, user.getId());
+                        ps.setString(2, role.name());
+                    });
+        }
         return user;
     }
 
@@ -82,8 +84,10 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         Map<Integer, User> userMap = new HashMap<>();
-        jdbcTemplate.query("SELECT * FROM users u LEFT JOIN user_roles r ON u.id=r.user_id ORDER BY name, email", getHandler(userMap));
-        return new ArrayList<>(userMap.values());
+        jdbcTemplate.query("SELECT * FROM users u LEFT JOIN user_roles r ON u.id=r.user_id", getHandler(userMap));
+        final List<User> users = new ArrayList<>(userMap.values());
+        users.sort(Comparator.comparing(User::getName).thenComparing(User::getEmail));
+        return users;
     }
 
     private RowCallbackHandler getHandler(Map<Integer, User> userMap) {
@@ -91,8 +95,9 @@ public class JdbcUserRepository implements UserRepository {
             do {
                 int userId = rs.getInt("id");
                 User user;
-                if ((user = userMap.get(userId)) != null) {
-                    user.getRoles().add(Role.valueOf(rs.getString("role")));
+                final String role = rs.getString("role");
+                if (role != null && (user = userMap.get(userId)) != null) {
+                    user.getRoles().add(Role.valueOf(role));
                 } else {
                     user = new User(
                             userId,
@@ -102,7 +107,7 @@ public class JdbcUserRepository implements UserRepository {
                             rs.getInt("calories_per_day"),
                             rs.getBoolean("enabled"),
                             rs.getDate("registered"),
-                            Collections.singletonList(Role.valueOf(rs.getString("role"))));
+                            role != null ? Collections.singletonList(Role.valueOf(role)) : EnumSet.noneOf(Role.class));
                     userMap.put(userId, user);
                 }
             } while (rs.next());

@@ -12,6 +12,7 @@ import ru.javawebinar.topjava.repository.JpaUtil;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.validation.ConstraintViolationException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +47,17 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         assertMatch(service.get(newId), newUser);
     }
 
+    @Test
+    public void createNoRoles() throws Exception {
+        User newUser = getNew();
+        newUser.setRoles(null);
+        User created = service.create(newUser);
+        Integer newId = created.getId();
+        newUser.setId(newId);
+        assertMatch(created, newUser);
+        assertMatch(service.get(newId), newUser);
+    }
+
     @Test(expected = DataAccessException.class)
     public void duplicateMailCreate() throws Exception {
         service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.ROLE_USER));
@@ -58,6 +70,12 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test(expected = NotFoundException.class)
+    public void deleteNoRoles() throws Exception {
+        service.delete(ROLES_ID);
+        service.get(ROLES_ID);
+    }
+
+    @Test(expected = NotFoundException.class)
     public void deletedNotFound() throws Exception {
         service.delete(1);
     }
@@ -66,6 +84,11 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     public void get() throws Exception {
         User user = service.get(ADMIN_ID);
         assertMatch(user, ADMIN);
+    }
+    @Test
+    public void getNoRoles() throws Exception {
+        User user = service.get(ROLES_ID);
+        assertMatch(user, ROLES);
     }
 
     @Test(expected = NotFoundException.class)
@@ -92,9 +115,25 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void updateNoRoles() throws Exception {
+        User updated = getUpdated();
+        updated.setRoles(null);
+        service.update(updated);
+        assertMatch(service.get(USER_ID), updated);
+    }
+
+    @Test
+    public void updateAddRoles() throws Exception {
+        User updated = new User(ROLES);
+        updated.setRoles(Collections.singletonList(Role.ROLE_USER));
+        service.update(updated);
+        assertMatch(service.get(ROLES_ID), updated);
+    }
+
+    @Test
     public void getAll() throws Exception {
         List<User> all = service.getAll();
-        assertMatch(all, ADMIN, USER);
+        assertMatch(all, ADMIN, ROLES, USER);
     }
 
     @Test

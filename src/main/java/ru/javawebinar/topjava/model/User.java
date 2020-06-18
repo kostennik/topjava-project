@@ -54,7 +54,7 @@ public class User extends AbstractNamedEntity {
     @ElementCollection(fetch = FetchType.EAGER)
 //    @Fetch(FetchMode.SUBSELECT)
     @BatchSize(size = 200)
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 
     @Column(name = "calories_per_day", nullable = false, columnDefinition = "int default 2000")
     @Range(min = 10, max = 10000)
@@ -64,11 +64,17 @@ public class User extends AbstractNamedEntity {
     @OrderBy("dateTime DESC")
     protected List<Meal> meals;
 
-    public User() {
+    protected User() {
     }
 
     public User(User u) {
         this(u.getId(), u.getName(), u.getEmail(), u.getPassword(), u.getCaloriesPerDay(), u.isEnabled(), u.getRegistered(), u.getRoles());
+    }
+
+    public User(Integer id, String name, String email, String password) {
+        super(id, name);
+        this.email = email;
+        this.password = password;
     }
 
     public User(Integer id, String name, String email, String password, Role role, Role... roles) {
