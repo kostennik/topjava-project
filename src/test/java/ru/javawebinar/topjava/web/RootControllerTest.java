@@ -11,8 +11,7 @@ import java.util.List;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ru.javawebinar.topjava.MealTestData.MEALS;
-import static ru.javawebinar.topjava.MealTestData.assertMatchTo;
+import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.*;
 
 class RootControllerTest extends AbstractControllerTest {
@@ -45,7 +44,7 @@ class RootControllerTest extends AbstractControllerTest {
                         new AssertionMatcher<List<MealTo>>() {
                             @Override
                             public void assertion(List<MealTo> actual) throws AssertionError {
-                                assertMatchTo(actual, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()));
+                                assertMatch(actual, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()));
                             }
                         }));
     }
