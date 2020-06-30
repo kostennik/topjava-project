@@ -2,11 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:cache="http://www.springframework.org/schema/cache"
-       xmlns:p="http://www.springframework.org/schema/p" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
          http://www.springframework.org/schema/beans/spring-beans.xsd
          http://www.springframework.org/schema/cache
-         http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+         http://www.springframework.org/schema/cache/spring-cache.xsd">
 
     <!-- enables scanning for @Cacheable annotation -->
     <cache:annotation-driven cache-manager="ehCacheManager"/>
@@ -16,19 +16,6 @@
         <property name="cacheManager">
             <bean class="org.springframework.cache.jcache.JCacheManagerFactoryBean"
                   p:cacheManagerUri="classpath:cache/ehcache.xml"/>
-        </property>
-    </bean>
-
-    <mvc:annotation-driven conversion-service="conversionService"/>
-
-    <bean id="conversionService"
-          class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
-        <property name="registerDefaultFormatters" value="true" />
-        <property name="converters">
-            <set>
-                <bean class="ru.javawebinar.topjava.util.StringToLocalDateConverter"/>
-                <bean class="ru.javawebinar.topjava.util.StringToLocalTimeConverter"/>
-            </set>
         </property>
     </bean>
 </beans>

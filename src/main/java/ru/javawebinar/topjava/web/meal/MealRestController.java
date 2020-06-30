@@ -62,12 +62,8 @@ public class MealRestController extends AbstractMealController {
 
     @GetMapping("/filter")
     @ResponseStatus(HttpStatus.OK)
-    public List<MealTo> getBetween(String startDate, String startTime,
-                                   String endDate,  String endTime) {
-        return super.getBetween(
-                conversionService.convert(startDate, LocalDate.class),
-                conversionService.convert(startTime, LocalTime.class),
-                conversionService.convert(endDate, LocalDate.class),
-                conversionService.convert(endTime, LocalTime.class));
+    public List<MealTo> getBetween(LocalDate startDate, LocalTime startTime,
+                                   LocalDate endDate, LocalTime endTime) {
+        return super.getBetween(startDate, startTime, endDate, endTime);
     }
 }
