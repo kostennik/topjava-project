@@ -22,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
+import static ru.javawebinar.topjava.TestData.assertMatch;
+import static ru.javawebinar.topjava.TestData.contentJson;
 import static ru.javawebinar.topjava.web.meal.MealRestController.REST_URL;
 
 public class MealRestControllerTest extends AbstractControllerTest {
@@ -35,7 +37,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
+                .andExpect(contentJson(new String[0], MealTo.class, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
     }
 
     @Test
@@ -44,7 +46,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(MEAL1));
+                .andExpect(contentJson(MEAL_IGNORE, Meal.class, MEAL1));
     }
 
     @Test
@@ -61,7 +63,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(redirectedUrl(String.format("%s%s/%d", "http://localhost", REST_URL, newId)))
-                .andExpect(contentJson(created));
+                .andExpect(contentJson(MEAL_IGNORE, Meal.class, created));
     }
 
     @Test
@@ -83,7 +85,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        assertMatch(service.get(MEAL1_ID, USER_ID), updated);
+        assertMatch(MEAL_IGNORE, service.get(MEAL1_ID, USER_ID), updated);
     }
 
     @Test
@@ -96,7 +98,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(MealsUtil.getTos(List.of(MEAL3, MEAL2), SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
+                .andExpect(contentJson(new String[0], MealTo.class, MealsUtil.getTos(List.of(MEAL3, MEAL2), SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
     }
 
     @Test
@@ -105,6 +107,6 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
+                .andExpect(contentJson(new String[0], MealTo.class, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()).toArray(new MealTo[0])));
     }
 }

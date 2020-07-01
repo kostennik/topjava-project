@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.javawebinar.topjava.UserTestData.*;
+import static ru.javawebinar.topjava.TestData.assertMatch;
 
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
@@ -28,62 +29,62 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void create() throws Exception {
+    void create() {
         User newUser = getNew();
         User created = service.create(new User(newUser));
         Integer newId = created.getId();
         newUser.setId(newId);
-        assertMatch(created, newUser);
-        assertMatch(service.get(newId), newUser);
+        assertMatch(USER_IGNORE, created, newUser);
+        assertMatch(USER_IGNORE, service.get(newId), newUser);
     }
 
     @Test
-    void duplicateMailCreate() throws Exception {
+    void duplicateMailCreate() {
         assertThrows(DataAccessException.class, () ->
                 service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.ROLE_USER)));
     }
 
     @Test
-    void delete() throws Exception {
+    void delete() {
         service.delete(USER_ID);
         assertThrows(NotFoundException.class, () ->
                 service.delete(USER_ID));
     }
 
     @Test
-    void deletedNotFound() throws Exception {
+    void deletedNotFound() {
         assertThrows(NotFoundException.class, () ->
                 service.delete(1));
     }
 
     @Test
-    void get() throws Exception {
+    void get() {
         User user = service.get(ADMIN_ID);
-        assertMatch(user, ADMIN);
+        assertMatch(USER_IGNORE, user, ADMIN);
     }
 
     @Test
-    void getNotFound() throws Exception {
+    void getNotFound() {
         assertThrows(NotFoundException.class, () ->
                 service.get(1));
     }
 
     @Test
-    void getByEmail() throws Exception {
+    void getByEmail() {
         User user = service.getByEmail("admin@gmail.com");
-        assertMatch(user, ADMIN);
+        assertMatch(USER_IGNORE, user, ADMIN);
     }
 
     @Test
-    void update() throws Exception {
+    void update() {
         User updated = getUpdated();
         service.update(new User(updated));
-        assertMatch(service.get(USER_ID), updated);
+        assertMatch(USER_IGNORE, service.get(USER_ID), updated);
     }
 
     @Test
-    void getAll() throws Exception {
+    void getAll() {
         List<User> all = service.getAll();
-        assertMatch(all, ADMIN, USER);
+        assertMatch(USER_IGNORE, all, ADMIN, USER);
     }
 }
