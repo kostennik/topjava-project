@@ -25,7 +25,6 @@ public class MealRestController extends AbstractMealController {
 
     @Override
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public Meal get(@PathVariable int id) {
         return super.get(id);
     }
@@ -54,7 +53,6 @@ public class MealRestController extends AbstractMealController {
     }
 
     @GetMapping("/filter")
-    @ResponseStatus(HttpStatus.OK)
     public List<MealTo> getBetween(LocalDate startDate, LocalTime startTime,
                                    LocalDate endDate, LocalTime endTime) {
         return super.getBetween(startDate, startTime, endDate, endTime);
