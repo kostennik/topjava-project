@@ -48,14 +48,14 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
         Meal created = service.create(newMeal, USER_ID);
         Integer newId = created.getId();
         newMeal.setId(newId);
-        assertMatch(MEAL_IGNORE, created, newMeal);
-        assertMatch(MEAL_IGNORE, service.get(newId, USER_ID), newMeal);
+        assertMatch(created, newMeal);
+        assertMatch(service.get(newId, USER_ID), newMeal);
     }
 
     @Test
     void get() {
         Meal actual = service.get(ADMIN_MEAL_ID, ADMIN_ID);
-        assertMatch(MEAL_IGNORE, actual, ADMIN_MEAL1);
+        assertMatch(actual, ADMIN_MEAL1);
     }
 
     @Test
@@ -74,7 +74,7 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
     void update() {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
-        assertMatch(MEAL_IGNORE, service.get(MEAL1_ID, USER_ID), updated);
+        assertMatch(service.get(MEAL1_ID, USER_ID), updated);
     }
 
     @Test
@@ -85,19 +85,19 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
 
     @Test
     void getAll() {
-        assertMatch(MEAL_IGNORE, service.getAll(USER_ID), MEALS);
+        assertMatch(service.getAll(USER_ID), MEALS);
     }
 
     @Test
     void getBetween() {
-        assertMatch(MEAL_IGNORE, service.getBetweenDates(
+        assertMatch(service.getBetweenDates(
                 LocalDate.of(2015, Month.MAY, 30),
                 LocalDate.of(2015, Month.MAY, 30), USER_ID), MEAL3, MEAL2, MEAL1);
     }
 
     @Test
     void getBetweenWithNullDates() {
-        assertMatch(MEAL_IGNORE, service.getBetweenDates(null, null, USER_ID), MEALS);
+        assertMatch(service.getBetweenDates(null, null, USER_ID), MEALS);
     }
 
     @Test

@@ -30,13 +30,14 @@ class ProfileRestControllerTest extends AbstractControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(USER_IGNORE, User.class, USER));
+                .andExpect(contentJson(User.class, USER));
     }
 
     @Test
     void delete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL))
                 .andExpect(status().isNoContent());
+//        assertMatch(userService.getAll(), ADMIN);
         assertThrows(NotFoundException.class, () -> userService.get(USER_ID));
     }
 
@@ -48,6 +49,6 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        assertMatch(USER_IGNORE, userService.get(USER_ID), updated);
+        assertMatch(userService.get(USER_ID), updated);
     }
 }

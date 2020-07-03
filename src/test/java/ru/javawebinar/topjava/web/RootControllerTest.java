@@ -28,7 +28,7 @@ class RootControllerTest extends AbstractControllerTest {
                         new AssertionMatcher<List<User>>() {
                             @Override
                             public void assertion(List<User> actual) throws AssertionError {
-                                assertMatch(USER_IGNORE, actual, ADMIN, USER);
+                                assertMatch(actual, ADMIN, USER);
                             }
                         }
                 ));
@@ -45,7 +45,7 @@ class RootControllerTest extends AbstractControllerTest {
                         new AssertionMatcher<List<MealTo>>() {
                             @Override
                             public void assertion(List<MealTo> actual) throws AssertionError {
-                                assertMatch(MEAL_IGNORE, actual, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()));
+                                assertMatch(actual, MealsUtil.getTos(MEALS, SecurityUtil.authUserCaloriesPerDay()));
                             }
                         }));
     }

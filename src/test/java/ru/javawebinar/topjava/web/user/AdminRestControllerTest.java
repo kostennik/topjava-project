@@ -35,7 +35,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 // https://jira.spring.io/browse/SPR-14472
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(USER_IGNORE, User.class, ADMIN));
+                .andExpect(contentJson(User.class, ADMIN));
     }
 
     @Test
@@ -43,7 +43,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "by?email=" + USER.getEmail()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(USER_IGNORE, User.class, USER));
+                .andExpect(contentJson(User.class, USER));
     }
 
     @Test
@@ -62,7 +62,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated)))
                 .andExpect(status().isNoContent());
 
-        assertMatch(USER_IGNORE, userService.get(USER_ID), updated);
+        assertMatch(userService.get(USER_ID), updated);
     }
 
     @Test
@@ -76,8 +76,8 @@ class AdminRestControllerTest extends AbstractControllerTest {
         User created = readFromJson(action, User.class);
         Integer newId = created.getId();
         newUser.setId(newId);
-        assertMatch(USER_IGNORE, created, newUser);
-        assertMatch(USER_IGNORE, userService.get(newId), newUser);
+        assertMatch(created, newUser);
+        assertMatch(userService.get(newId), newUser);
     }
 
     @Test
@@ -85,6 +85,6 @@ class AdminRestControllerTest extends AbstractControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(USER_IGNORE, User.class, ADMIN, USER));
+                .andExpect(contentJson(User.class, ADMIN, USER));
     }
 }
