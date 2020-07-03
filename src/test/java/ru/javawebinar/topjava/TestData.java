@@ -32,7 +32,7 @@ public class TestData {
         return result -> assertMatch(readListFromJsonMvcResult(result, tClass), List.of(expected));
     }
 
-    public static <T> ResultMatcher contentJson(Class<T> tClass, Meal expected) {
+    public static <T> ResultMatcher contentJson(Class<T> tClass, T expected) {
         return result -> assertMatch(readFromJsonMvcResult(result, tClass), expected);
     }
 

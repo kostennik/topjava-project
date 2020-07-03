@@ -37,7 +37,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
     void delete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL))
                 .andExpect(status().isNoContent());
-//        assertMatch(userService.getAll(), ADMIN);
+        assertMatch(userService.getAll(), new User[]{ADMIN});
         assertThrows(NotFoundException.class, () -> userService.get(USER_ID));
     }
 
