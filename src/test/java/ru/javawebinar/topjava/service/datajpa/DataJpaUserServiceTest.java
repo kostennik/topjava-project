@@ -8,22 +8,20 @@ import ru.javawebinar.topjava.service.AbstractJpaUserServiceTest;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static ru.javawebinar.topjava.MealTestData.MEAL_IGNORE;
 import static ru.javawebinar.topjava.Profiles.DATAJPA;
 import static ru.javawebinar.topjava.UserTestData.*;
-import static ru.javawebinar.topjava.TestData.assertMatch;
 
 @ActiveProfiles(DATAJPA)
 class DataJpaUserServiceTest extends AbstractJpaUserServiceTest {
     @Test
-    void getWithMeals() {
+    void getWithMeals() throws Exception {
         User admin = service.getWithMeals(ADMIN_ID);
         assertMatch(admin, ADMIN);
-        assertMatch(admin.getMeals(), MealTestData.ADMIN_MEAL2, MealTestData.ADMIN_MEAL1);
+        MealTestData.assertMatch(admin.getMeals(), MealTestData.ADMIN_MEAL2, MealTestData.ADMIN_MEAL1);
     }
 
     @Test
-    void getWithMealsNotFound() {
+    void getWithMealsNotFound() throws Exception {
         assertThrows(NotFoundException.class, () ->
                 service.getWithMeals(1));
     }

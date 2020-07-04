@@ -6,12 +6,11 @@ import ru.javawebinar.topjava.model.Meal;
 import java.util.List;
 
 import static ru.javawebinar.topjava.MealTestData.*;
-import static ru.javawebinar.topjava.TestData.assertMatch;
 
 class JsonUtilTest {
 
     @Test
-    void readWriteValue() {
+    void readWriteValue() throws Exception {
         String json = JsonUtil.writeValue(ADMIN_MEAL1);
         System.out.println(json);
         Meal meal = JsonUtil.readValue(json, Meal.class);
@@ -19,7 +18,7 @@ class JsonUtilTest {
     }
 
     @Test
-    void readWriteValues() {
+    void readWriteValues() throws Exception {
         String json = JsonUtil.writeValue(MEALS);
         System.out.println(json);
         List<Meal> meals = JsonUtil.readValues(json, Meal.class);

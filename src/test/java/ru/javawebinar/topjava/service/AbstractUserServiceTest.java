@@ -13,7 +13,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.javawebinar.topjava.UserTestData.*;
-import static ru.javawebinar.topjava.TestData.assertMatch;
 
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
@@ -29,7 +28,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void create() {
+    void create() throws Exception {
         User newUser = getNew();
         User created = service.create(new User(newUser));
         Integer newId = created.getId();
@@ -39,51 +38,51 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void duplicateMailCreate() {
+    void duplicateMailCreate() throws Exception {
         assertThrows(DataAccessException.class, () ->
                 service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.ROLE_USER)));
     }
 
     @Test
-    void delete() {
+    void delete() throws Exception {
         service.delete(USER_ID);
         assertThrows(NotFoundException.class, () ->
                 service.delete(USER_ID));
     }
 
     @Test
-    void deletedNotFound() {
+    void deletedNotFound() throws Exception {
         assertThrows(NotFoundException.class, () ->
                 service.delete(1));
     }
 
     @Test
-    void get() {
+    void get() throws Exception {
         User user = service.get(ADMIN_ID);
         assertMatch(user, ADMIN);
     }
 
     @Test
-    void getNotFound() {
+    void getNotFound() throws Exception {
         assertThrows(NotFoundException.class, () ->
                 service.get(1));
     }
 
     @Test
-    void getByEmail() {
+    void getByEmail() throws Exception {
         User user = service.getByEmail("admin@gmail.com");
         assertMatch(user, ADMIN);
     }
 
     @Test
-    void update() {
+    void update() throws Exception {
         User updated = getUpdated();
         service.update(new User(updated));
         assertMatch(service.get(USER_ID), updated);
     }
 
     @Test
-    void getAll() {
+    void getAll() throws Exception {
         List<User> all = service.getAll();
         assertMatch(all, ADMIN, USER);
     }
