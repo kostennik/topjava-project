@@ -1,0 +1,117 @@
+Index: src/test/java/ru/javawebinar/topjava/TimingExtension.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/TimingExtension.java	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/test/java/ru/javawebinar/topjava/TimingExtension.java	(date 1574866032085)
+@@ -19,14 +19,14 @@
+ 
+     @Override
+     public void beforeTestExecution(ExtensionContext extensionContext) throws Exception {
+-        log.info("Start stopWatch");
+-        stopWatch.start(extensionContext.getDisplayName());
++        String testName = extensionContext.getDisplayName();
++        log.info("\nStart " + testName);
++        stopWatch.start(testName);
+     }
+ 
+     @Override
+     public void afterTestExecution(ExtensionContext extensionContext) throws Exception {
+         stopWatch.stop();
+-        log.info("stop stopWatch");
+     }
+ 
+     @Override
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(date 1574866032064)
+@@ -95,12 +95,12 @@
+     }
+ 
+     @Test
+-    public void getBetweenWithNullDates() throws Exception {
++    void getBetweenWithNullDates() throws Exception {
+         assertMatch(service.getBetweenDates(null, null, USER_ID), MEALS);
+     }
+ 
+     @Test
+-    public void createWithException() throws Exception {
++    void createWithException() throws Exception {
+         Assumptions.assumeTrue(isJpaBased(), "Validation not supported (JPA only)");
+         validateRootCause(() -> service.create(new Meal(null, of(2015, Month.JUNE, 1, 18, 0), "  ", 300), USER_ID), ConstraintViolationException.class);
+         validateRootCause(() -> service.create(new Meal(null, null, "Description", 300), USER_ID), ConstraintViolationException.class);
+Index: src/main/webapp/WEB-INF/jsp/mealForm.jsp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/jsp/mealForm.jsp	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/main/webapp/WEB-INF/jsp/mealForm.jsp	(date 1574866032051)
+@@ -9,7 +9,7 @@
+ 
+ <section>
+     <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.Meal" scope="request"/>
+-    <h3><spring:message code="${meal.isNew() ? 'meal.add' : 'meal.edit'}"/></h3>
++    <h3><spring:message code="${meal.new ? 'meal.add' : 'meal.edit'}"/></h3>
+     <hr>
+     <form method="post" action="meals">
+         <input type="hidden" name="id" value="${meal.id}">
+Index: src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1574881123140)
+@@ -14,7 +14,7 @@
+ class RootControllerTest extends AbstractControllerTest {
+ 
+     @Test
+-    public void getUsers() throws Exception {
++    void getUsers() throws Exception {
+         mockMvc.perform(get("/users"))
+                 .andDo(print())
+                 .andExpect(status().isOk())
+Index: src/main/java/ru/javawebinar/topjava/util/DateTimeUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/DateTimeUtil.java	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/main/java/ru/javawebinar/topjava/util/DateTimeUtil.java	(date 1574866032038)
+@@ -13,8 +13,8 @@
+     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+ 
+     // HSQLDB doesn't support LocalDate.MIN/MAX
+-    private static final LocalDateTime MIN_DATE = LocalDate.of(1, 1, 1).atStartOfDay();
+-    private static final LocalDateTime MAX_DATE = LocalDate.of(3000, 1, 1).atStartOfDay();
++    private static final LocalDateTime MIN_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
++    private static final LocalDateTime MAX_DATE = LocalDateTime.of(3000, 1, 1, 0, 0);
+ 
+     private DateTimeUtil() {
+     }
+Index: src/main/resources/spring/spring-tools.xml
+===================================================================
+--- src/main/resources/spring/spring-tools.xml	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/main/resources/spring/spring-cache.xml	(date 1574881112886)
+Index: src/main/resources/spring/spring-app.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/resources/spring/spring-app.xml	(revision 4fb11de93c0e69f329356e4531c6e07c4870f14a)
++++ src/main/resources/spring/spring-app.xml	(date 1574881158154)
+@@ -11,7 +11,7 @@
+             <constructor-arg name="repository" ref="inmemoryUserRepository"/>
+         </bean>
+     -->
+-    <import resource="spring-tools.xml"/>
++    <import resource="spring-cache.xml"/>
+ 
+     <!-- Not necessary, already included with component-scan -->
+     <!--<context:annotation-config/>-->
