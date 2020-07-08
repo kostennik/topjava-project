@@ -11,26 +11,18 @@
         <mvc:message-converters>
             <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
                 <property name="objectMapper" ref="objectMapper"/>
+
             </bean>
             <bean class="org.springframework.http.converter.StringHttpMessageConverter">
-<!--                <property name="supportedMediaTypes">-->
-<!--                    <list>-->
-<!--                        <value>text/plain;charset=UTF-8</value>-->
-<!--                        <value>text/html;charset=UTF-8</value>-->
-<!--                    </list>-->
-<!--                </property>-->
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/plain;charset=UTF-8</value>
+                        <value>text/html;charset=UTF-8</value>
+                    </list>
+                </property>
             </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
-
-    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean" id="conversionService">
-        <property name="formatters">
-            <set>
-                <bean class="ru.javawebinar.topjava.web.converter.DateTimeFormatters.LocalTimeFormatter"/>
-                <bean class="ru.javawebinar.topjava.web.converter.DateTimeFormatters.LocalDateFormatter"/>
-            </set>
-        </property>
-    </bean>
 
     <context:component-scan base-package="ru.javawebinar.**.web"/>
 
@@ -58,4 +50,14 @@
         <property name="basenames" value="file:///#{systemEnvironment['TOPJAVA_ROOT']}/config/messages/app"/>
         <property name="fallbackToSystemLocale" value="false"/>
     </bean>
+
+        <bean id="conversionService"
+              class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+            <property name="formatters">
+                <set>
+                    <bean class="ru.javawebinar.topjava.formatter.StringToLocalDateFormatter"/>
+                    <bean class="ru.javawebinar.topjava.formatter.StringToLocalTimeFormatter"/>
+                </set>
+            </property>
+        </bean>
 </beans>
