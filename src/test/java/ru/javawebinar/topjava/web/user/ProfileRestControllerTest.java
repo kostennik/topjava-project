@@ -11,6 +11,8 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -37,7 +39,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
     void delete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL))
                 .andExpect(status().isNoContent());
-        assertMatch(userService.getAll(), new User[]{ADMIN});
+        assertMatch(userService.getAll(), List.of(ADMIN));
         assertThrows(NotFoundException.class, () -> userService.get(USER_ID));
     }
 
