@@ -40,3 +40,13 @@ function setDefaultValues() {
     $('#dateTime').val(localISOTime);
     $("#calories").val("1000");
 }
+
+function filter() {
+    // form = $('#filter');
+    $.ajax({
+        url: context.ajaxUrl + "filter",
+        type: "get"
+    }).done(function() {
+        updateTable();
+    });
+}

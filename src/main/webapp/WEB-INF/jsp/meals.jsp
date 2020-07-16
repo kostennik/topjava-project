@@ -9,37 +9,54 @@
 <script type="text/javascript" src="resources/js/topjava.meals.js" defer></script>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 
-<div class="jumbotron pt-4">
+<div class="jumbotron pt-4 bg-light">
     <div class="container">
         <section>
-            <h3><spring:message code="meal.title"/></h3>
+            <div class="text-center"><h3><spring:message code="meal.title"/></h3></div>
 
-            <form method="get" action="meals/filter">
-                <dl>
-                    <dt><spring:message code="meal.startDate"/>:</dt>
-                    <dd><input type="date" name="startDate" value="${param.startDate}"></dd>
-                </dl>
-                <dl>
-                    <dt><spring:message code="meal.endDate"/>:</dt>
-                    <dd><input type="date" name="endDate" value="${param.endDate}"></dd>
-                </dl>
-                <dl>
-                    <dt><spring:message code="meal.startTime"/>:</dt>
-                    <dd><input type="time" name="startTime" value="${param.startTime}"></dd>
-                </dl>
-                <dl>
-                    <dt><spring:message code="meal.endTime"/>:</dt>
-                    <dd><input type="time" name="endTime" value="${param.endTime}"></dd>
-                </dl>
-                <button type="submit"><spring:message code="meal.filter"/></button>
+            <form method="get" id="filter">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                            <span class="input-group-text border-info" style="min-width: 120px;"><spring:message
+                                    code="meal.startDate"/>:</span>
+                    </div>
+                    <input type="date" name="startDate" id="startDate" aria-label="startDate" class="form-control border-info"
+                           value="${param.startDate}">
+                    <div class="input-group-prepend ml-2">
+                            <span class="input-group-text border-info" style="min-width: 120px;"><spring:message
+                                    code="meal.startTime"/>:</span>
+                    </div>
+                    <input type="time" name="startTime" id="startTime" aria-label="startTime" class="form-control border-info"
+                           value="${param.startTime}">
+                </div>
+
+                <div class="input-group mt-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text border-info" style="min-width: 120px;"><spring:message
+                                code="meal.endDate"/>:</span>
+                    </div>
+                    <input type="date" name="endDate" id="endDate" aria-label="endDate" class="form-control  border-info" value="${param.endDate}">
+
+                    <div class="input-group-prepend ml-2">
+                        <span class="input-group-text border-info" style="min-width: 120px;"><spring:message
+                                code="meal.endTime"/>:</span>
+                    </div>
+                    <input type="time" name="endTime" id="endTime" aria-label="endTime" class="form-control border-info" value="${param.endTime}">
+                </div>
+
+                <div class="text-right mt-3">
+                    <button class="btn btn-outline-danger" onclick="clearFilter()"><i class="fa fa-eraser"></i> <spring:message
+                            code="common.cancel"/></button>
+                    <button class="btn btn-outline-info ml-1" onclick="filter()"><i class="fa fa-filter"></i> <spring:message
+                            code="meal.filter"/></button>
+                </div>
             </form>
-            <hr>
-            <button class="btn btn-primary" onclick="add()">
-                <span class="fa fa-plus"></span>
-                <spring:message code="meal.add"/>
+
+            <button class="btn btn-outline-success" onclick="add()">
+                <i class="fa fa-plus"></i> <spring:message code="meal.add"/>
             </button>
-            <hr>
-            <table class="table table-striped" id="datatable">
+
+            <table class="table table-striped mt-3" id="datatable">
                 <thead>
                 <tr>
                     <th><spring:message code="meal.dateTime"/></th>
