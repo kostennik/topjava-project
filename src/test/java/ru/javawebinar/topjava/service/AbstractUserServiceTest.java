@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static ru.javawebinar.topjava.TestData.assertMatch;
 import static ru.javawebinar.topjava.UserTestData.*;
 
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
@@ -27,8 +29,8 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         User created = service.create(new User(newUser));
         Integer newId = created.getId();
         newUser.setId(newId);
-        assertMatch(created, newUser);
-        assertMatch(service.get(newId), newUser);
+        assertMatch(UserTestData.IGNORE_FIELDS, created, newUser);
+        assertMatch(UserTestData.IGNORE_FIELDS, service.get(newId), newUser);
     }
 
     @Test
@@ -53,7 +55,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     void get() throws Exception {
         User user = service.get(ADMIN_ID);
-        assertMatch(user, ADMIN);
+        assertMatch(UserTestData.IGNORE_FIELDS, user, ADMIN);
     }
 
     @Test
@@ -65,20 +67,20 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     void getByEmail() throws Exception {
         User user = service.getByEmail("admin@gmail.com");
-        assertMatch(user, ADMIN);
+        assertMatch(UserTestData.IGNORE_FIELDS, user, ADMIN);
     }
 
     @Test
     void update() throws Exception {
         User updated = getUpdated();
         service.update(new User(updated));
-        assertMatch(service.get(USER_ID), updated);
+        assertMatch(UserTestData.IGNORE_FIELDS, service.get(USER_ID), updated);
     }
 
     @Test
     void getAll() throws Exception {
         List<User> all = service.getAll();
-        assertMatch(all, ADMIN, USER);
+        assertMatch(UserTestData.IGNORE_FIELDS, all, ADMIN, USER);
     }
 
     @Test

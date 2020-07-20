@@ -2,6 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.assertj.core.matcher.AssertionMatcher;
 import org.junit.jupiter.api.Test;
+import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.User;
 
 import java.util.List;
@@ -10,7 +11,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.javawebinar.topjava.MealTestData.MEALS;
-import static ru.javawebinar.topjava.UserTestData.*;
+import static ru.javawebinar.topjava.TestData.assertMatch;
+import static ru.javawebinar.topjava.UserTestData.ADMIN;
+import static ru.javawebinar.topjava.UserTestData.USER;
 import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 
 class RootControllerTest extends AbstractControllerTest {
@@ -26,7 +29,7 @@ class RootControllerTest extends AbstractControllerTest {
                         new AssertionMatcher<List<User>>() {
                             @Override
                             public void assertion(List<User> actual) throws AssertionError {
-                                assertMatch(actual, ADMIN, USER);
+                                assertMatch(UserTestData.IGNORE_FIELDS, actual, ADMIN, USER);
                             }
                         }
                 ));
