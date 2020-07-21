@@ -2,7 +2,6 @@ package ru.javawebinar.topjava.web;
 
 import org.assertj.core.matcher.AssertionMatcher;
 import org.junit.jupiter.api.Test;
-import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.User;
 
 import java.util.List;
@@ -29,7 +28,7 @@ class RootControllerTest extends AbstractControllerTest {
                         new AssertionMatcher<List<User>>() {
                             @Override
                             public void assertion(List<User> actual) throws AssertionError {
-                                assertMatch(UserTestData.IGNORE_FIELDS, actual, ADMIN, USER);
+                                assertMatch(actual, ADMIN, USER);
                             }
                         }
                 ));

@@ -27,7 +27,7 @@ class MealRestControllerTest extends AbstractRestController<Meal> {
     private MealService mealService;
 
     public MealRestControllerTest() {
-        super(REST_URL, Meal.class, IGNORE_FIELDS);
+        super(REST_URL, Meal.class);
     }
 
     @Test
@@ -44,19 +44,19 @@ class MealRestControllerTest extends AbstractRestController<Meal> {
     void update() throws Exception {
         Meal updated = getUpdated();
         super.update(String.valueOf(MEAL1_ID), updated);
-        assertMatch(IGNORE_FIELDS, mealService.get(MEAL1_ID, START_SEQ), updated);
+        assertMatch(mealService.get(MEAL1_ID, START_SEQ), updated);
     }
 
     @Test
     void createWithLocation() throws Exception {
         Meal newMeal = getNew();
         int newId = super.createWithLocation(newMeal);
-        assertMatch(IGNORE_FIELDS, mealService.get(newId, USER_ID), newMeal);
+        assertMatch(mealService.get(newId, USER_ID), newMeal);
     }
 
     @Test
     void getAll() throws Exception {
-        super.getAll(contentJson(IGNORE_FIELDS, MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
+        super.getAll(contentJson(MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
     }
 
     @Test
@@ -66,13 +66,13 @@ class MealRestControllerTest extends AbstractRestController<Meal> {
                 .param("endDate", "2015-05-31").param("endTime", "11:00"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(contentJson(IGNORE_FIELDS, MealTo.class, createTo(MEAL5, true), createTo(MEAL1, false)));
+                .andExpect(contentJson(MealTo.class, createTo(MEAL5, true), createTo(MEAL1, false)));
     }
 
     @Test
     void filterAll() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=&endTime="))
                 .andExpect(status().isOk())
-                .andExpect(contentJson(IGNORE_FIELDS, MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
+                .andExpect(contentJson(MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
     }
 }

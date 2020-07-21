@@ -17,7 +17,7 @@ class ProfileRestControllerTest extends AbstractRestController<User> {
     private UserService userService;
 
     public ProfileRestControllerTest() {
-        super(REST_URL, User.class, IGNORE_FIELDS);
+        super(REST_URL, User.class);
     }
 
     @Test
@@ -34,6 +34,6 @@ class ProfileRestControllerTest extends AbstractRestController<User> {
     void update() throws Exception {
         User updated = UserTestData.getUpdated();
         super.update("", updated);
-        assertMatch(IGNORE_FIELDS, userService.get(USER_ID), updated);
+        assertMatch(userService.get(USER_ID), updated);
     }
 }

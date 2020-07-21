@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
@@ -29,8 +28,8 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         User created = service.create(new User(newUser));
         Integer newId = created.getId();
         newUser.setId(newId);
-        assertMatch(UserTestData.IGNORE_FIELDS, created, newUser);
-        assertMatch(UserTestData.IGNORE_FIELDS, service.get(newId), newUser);
+        assertMatch(created, newUser);
+        assertMatch(service.get(newId), newUser);
     }
 
     @Test
@@ -55,7 +54,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     void get() throws Exception {
         User user = service.get(ADMIN_ID);
-        assertMatch(UserTestData.IGNORE_FIELDS, user, ADMIN);
+        assertMatch(user, ADMIN);
     }
 
     @Test
@@ -67,20 +66,20 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     void getByEmail() throws Exception {
         User user = service.getByEmail("admin@gmail.com");
-        assertMatch(UserTestData.IGNORE_FIELDS, user, ADMIN);
+        assertMatch(user, ADMIN);
     }
 
     @Test
     void update() throws Exception {
         User updated = getUpdated();
         service.update(new User(updated));
-        assertMatch(UserTestData.IGNORE_FIELDS, service.get(USER_ID), updated);
+        assertMatch(service.get(USER_ID), updated);
     }
 
     @Test
     void getAll() throws Exception {
         List<User> all = service.getAll();
-        assertMatch(UserTestData.IGNORE_FIELDS, all, ADMIN, USER);
+        assertMatch( all, ADMIN, USER);
     }
 
     @Test

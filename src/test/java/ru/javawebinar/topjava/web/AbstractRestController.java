@@ -16,18 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.javawebinar.topjava.TestData.assertMatch;
 import static ru.javawebinar.topjava.TestData.contentJson;
 import static ru.javawebinar.topjava.TestUtil.readFromJson;
-import static ru.javawebinar.topjava.UserTestData.*;
 
 public abstract class AbstractRestController<T extends AbstractBaseEntity> extends AbstractControllerTest {
 
     private final String restUrl;
     private final Class<T> tClass;
-    private final String[] ignoredFields;
 
-    public AbstractRestController(String restUrl, Class<T> tClass, String[] ignoredFields) {
+    public AbstractRestController(String restUrl, Class<T> tClass) {
         this.restUrl = restUrl;
         this.tClass = tClass;
-        this.ignoredFields = ignoredFields;
     }
 
     protected void get(String param, T data) throws Exception {
@@ -35,7 +32,7 @@ public abstract class AbstractRestController<T extends AbstractBaseEntity> exten
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(ignoredFields, tClass, data));
+                .andExpect(contentJson(tClass, data));
     }
 
     protected void delete(String id, Executable exec) throws Exception {
@@ -61,7 +58,7 @@ public abstract class AbstractRestController<T extends AbstractBaseEntity> exten
         T created = readFromJson(action, tClass);
         Integer newId = created.getId();
         newData.setId(newId);
-        assertMatch(ignoredFields, created, newData);
+        assertMatch(created, newData);
         return newId;
     }
 
@@ -71,5 +68,4 @@ public abstract class AbstractRestController<T extends AbstractBaseEntity> exten
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(matcher);
     }
-
 }

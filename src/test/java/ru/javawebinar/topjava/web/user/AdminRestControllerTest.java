@@ -19,7 +19,7 @@ class AdminRestControllerTest extends AbstractRestController<User> {
     private UserService userService;
 
     public AdminRestControllerTest() {
-        super(REST_URL, User.class, IGNORE_FIELDS);
+        super(REST_URL, User.class);
     }
 
     @Test
@@ -41,18 +41,18 @@ class AdminRestControllerTest extends AbstractRestController<User> {
     void update() throws Exception {
         User updated = UserTestData.getUpdated();
         super.update(String.valueOf(USER_ID), updated);
-        assertMatch(IGNORE_FIELDS, userService.get(USER_ID), updated);
+        assertMatch(userService.get(USER_ID), updated);
     }
 
     @Test
     void createWithLocation() throws Exception {
         User newUser = UserTestData.getNew();
         int newId = super.createWithLocation(newUser);
-        assertMatch(IGNORE_FIELDS, userService.get(newId), newUser);
+        assertMatch(userService.get(newId), newUser);
     }
 
     @Test
     void getAll() throws Exception {
-        super.getAll(contentJson(IGNORE_FIELDS, User.class, ADMIN, USER));
+        super.getAll(contentJson(User.class, ADMIN, USER));
     }
 }

@@ -3,7 +3,6 @@ package ru.javawebinar.topjava.service;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
@@ -49,14 +48,14 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
         Meal created = service.create(newMeal, USER_ID);
         Integer newId = created.getId();
         newMeal.setId(newId);
-        assertMatch(MealTestData.IGNORE_FIELDS, created, newMeal);
-        assertMatch(MealTestData.IGNORE_FIELDS, service.get(newId, USER_ID), newMeal);
+        assertMatch(created, newMeal);
+        assertMatch(service.get(newId, USER_ID), newMeal);
     }
 
     @Test
     void get() throws Exception {
         Meal actual = service.get(ADMIN_MEAL_ID, ADMIN_ID);
-        assertMatch(MealTestData.IGNORE_FIELDS, actual, ADMIN_MEAL1);
+        assertMatch(actual, ADMIN_MEAL1);
     }
 
     @Test
@@ -75,7 +74,7 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
     void update() throws Exception {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
-        assertMatch(MealTestData.IGNORE_FIELDS, service.get(MEAL1_ID, USER_ID), updated);
+        assertMatch(service.get(MEAL1_ID, USER_ID), updated);
     }
 
     @Test
@@ -86,19 +85,19 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
 
     @Test
     void getAll() throws Exception {
-        assertMatch(MealTestData.IGNORE_FIELDS, service.getAll(USER_ID), MEALS);
+        assertMatch(service.getAll(USER_ID), MEALS);
     }
 
     @Test
     void getBetween() throws Exception {
-        assertMatch(MealTestData.IGNORE_FIELDS, service.getBetweenDates(
+        assertMatch(service.getBetweenDates(
                 LocalDate.of(2015, Month.MAY, 30),
                 LocalDate.of(2015, Month.MAY, 30), USER_ID), MEAL3, MEAL2, MEAL1);
     }
 
     @Test
     void getBetweenWithNullDates() throws Exception {
-        assertMatch(MealTestData.IGNORE_FIELDS, service.getBetweenDates(null, null, USER_ID), MEALS);
+        assertMatch(service.getBetweenDates(null, null, USER_ID), MEALS);
     }
 
     @Test
