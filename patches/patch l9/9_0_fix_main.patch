@@ -1,0 +1,28 @@
+Index: src/test/java/ru/javawebinar/topjava/SpringMain.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/SpringMain.java	(revision 39f4b7d3377b88af89e454d73ae9fadbb7783166)
++++ src/test/java/ru/javawebinar/topjava/SpringMain.java	(date 1575505395168)
+@@ -1,6 +1,6 @@
+ package ru.javawebinar.topjava;
+ 
+-import org.springframework.context.support.GenericXmlApplicationContext;
++import org.springframework.context.support.ClassPathXmlApplicationContext;
+ import ru.javawebinar.topjava.to.MealTo;
+ import ru.javawebinar.topjava.web.meal.MealRestController;
+ import ru.javawebinar.topjava.web.user.AdminRestController;
+@@ -14,11 +14,7 @@
+ public class SpringMain {
+     public static void main(String[] args) {
+         // java 7 automatic resource management
+-        try (GenericXmlApplicationContext appCtx = new GenericXmlApplicationContext()) {
+-            appCtx.getEnvironment().setActiveProfiles(Profiles.getActiveDbProfile(), Profiles.REPOSITORY_IMPLEMENTATION);
+-            appCtx.load("spring/spring-app.xml", "spring/inmemory.xml");
+-            appCtx.refresh();
+-
++        try (ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml", "spring/inmemory.xml")) {
+             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
+             AdminRestController adminUserController = appCtx.getBean(AdminRestController.class);
+             adminUserController.getAll();

@@ -1,0 +1,86 @@
+Index: src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(date 1575498657000)
++++ src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(date 1575499076691)
+@@ -4,6 +4,9 @@
+ import ru.javawebinar.topjava.HasId;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ 
++import javax.validation.*;
++import java.util.Set;
++
+ public class ValidationUtil {
+ 
+     private ValidationUtil() {
+@@ -53,4 +56,21 @@
+         }
+         return result;
+     }
++
++    private static final Validator validator;
++
++    static {
++        //  From Javadoc: implementations are thread-safe and instances are typically cached and reused.
++        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
++        //  From Javadoc: implementations of this interface must be thread-safe
++        validator = factory.getValidator();
++    }
++
++    public static <T> void validate(T bean) {
++        // https://alexkosarev.name/2018/07/30/bean-validation-api/
++        Set<ConstraintViolation<T>> violations = validator.validate(bean);
++        if (!violations.isEmpty()) {
++            throw new ConstraintViolationException(violations);
++        }
++    }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java	(date 1575498657000)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java	(date 1575499235763)
+@@ -1,6 +1,5 @@
+ package ru.javawebinar.topjava.service;
+ 
+-import org.junit.jupiter.api.Assumptions;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.dao.DataAccessException;
+@@ -83,7 +82,6 @@
+ 
+     @Test
+     void createWithException() throws Exception {
+-        Assumptions.assumeTrue(isJpaBased(), "Validation not supported (JPA only)");
+         validateRootCause(() -> service.create(new User(null, "  ", "mail@yandex.ru", "password", Role.ROLE_USER)), ConstraintViolationException.class);
+         validateRootCause(() -> service.create(new User(null, "User", "  ", "password", Role.ROLE_USER)), ConstraintViolationException.class);
+         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.ROLE_USER)), ConstraintViolationException.class);
+Index: src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcUserRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcUserRepository.java	(date 1575498657000)
++++ src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcUserRepository.java	(date 1575498959058)
+@@ -13,6 +13,7 @@
+ import ru.javawebinar.topjava.model.Role;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.repository.UserRepository;
++import ru.javawebinar.topjava.util.ValidationUtil;
+ 
+ import java.util.*;
+ 
+@@ -41,6 +42,8 @@
+     @Override
+     @Transactional
+     public User save(User user) {
++        ValidationUtil.validate(user);
++
+         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
+ 
+         if (user.isNew()) {
