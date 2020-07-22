@@ -1,10 +1,13 @@
 package ru.javawebinar.topjava;
 
 import org.springframework.test.web.servlet.ResultMatcher;
+import ru.javawebinar.topjava.model.AbstractBaseEntity;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ru.javawebinar.topjava.TestUtil.readFromJsonMvcResult;
@@ -12,8 +15,16 @@ import static ru.javawebinar.topjava.TestUtil.readListFromJsonMvcResult;
 
 public class TestData {
 
+    public static final Map<Class<? extends AbstractBaseEntity>, String[]> ignoreFieldsMap = new HashMap<>();
+
+    static {
+        ignoreFieldsMap.put(User.class, new String[]{"registered", "meals"});
+        ignoreFieldsMap.put(Meal.class, new String[]{"user"});
+    }
+
     public static <T> void assertMatch(T actual, T expected) {
-        assertThat(actual).isEqualToIgnoringGivenFields(expected, getIgnoreFields(actual));
+        String[] ignoredFields = ignoreFieldsMap.getOrDefault(actual.getClass(), new String[0]);
+        assertThat(actual).isEqualToIgnoringGivenFields(expected, ignoredFields);
     }
 
     @SafeVarargs
@@ -22,7 +33,8 @@ public class TestData {
     }
 
     public static <T> void assertMatch(Iterable<T> actual, Iterable<T> expected) {
-        assertThat(actual).usingElementComparatorIgnoringFields(getIgnoreFields(actual.iterator().next())).isEqualTo(expected);
+        String[] ignoredFields = ignoreFieldsMap.getOrDefault(actual.iterator().next().getClass(), new String[0]);
+        assertThat(actual).usingElementComparatorIgnoringFields(ignoredFields).isEqualTo(expected);
     }
 
     public static <T> ResultMatcher contentJson(Class<T> tClass, T expected) {
@@ -36,14 +48,5 @@ public class TestData {
 
     public static <T> ResultMatcher contentJson(Class<T> tClass, Iterable<T> expected) {
         return result -> assertMatch(readListFromJsonMvcResult(result, tClass), expected);
-    }
-
-    private static <T> String[] getIgnoreFields(T testData) {
-        if (testData instanceof User) {
-            return UserTestData.IGNORE_FIELDS;
-        } else if (testData instanceof Meal) {
-            return MealTestData.IGNORE_FIELDS;
-        }
-        return new String[0];
     }
 }
