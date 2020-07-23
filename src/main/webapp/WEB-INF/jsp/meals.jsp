@@ -14,7 +14,7 @@
         <section>
             <div class="text-center"><h3><spring:message code="meal.title"/></h3></div>
 
-            <form method="get" id="filter">
+            <form id="filter">
                 <div class="input-group">
                     <div class="input-group-prepend">
                             <span class="input-group-text border-info" style="min-width: 120px;"><spring:message
@@ -43,14 +43,13 @@
                     </div>
                     <input type="time" name="endTime" id="endTime" aria-label="endTime" class="form-control border-info" value="${param.endTime}">
                 </div>
-
-                <div class="text-right mt-3">
-                    <button class="btn btn-outline-danger" onclick="clearFilter()"><i class="fa fa-eraser"></i> <spring:message
-                            code="common.cancel"/></button>
-                    <button class="btn btn-outline-info ml-1" onclick="filter()"><i class="fa fa-filter"></i> <spring:message
-                            code="meal.filter"/></button>
-                </div>
             </form>
+            <div class="text-right mt-3">
+                <button class="btn btn-outline-danger" onclick="clearFilter()"><i class="fa fa-eraser"></i> <spring:message
+                        code="common.cancel"/></button>
+                <button class="btn btn-outline-info ml-1" onclick="filter()" id="filter-button" type="button"><i class="fa fa-filter"></i> <spring:message
+                        code="meal.filter"/></button>
+            </div>
 
             <button class="btn btn-outline-success" onclick="add()">
                 <i class="fa fa-plus"></i> <spring:message code="meal.add"/>

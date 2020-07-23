@@ -42,11 +42,17 @@ function setDefaultValues() {
 }
 
 function filter() {
-    // form = $('#filter');
+    var formData = $("#filter").serializeArray();
     $.ajax({
+        type: "GET",
         url: context.ajaxUrl + "filter",
-        type: "get"
-    }).done(function() {
-        updateTable();
+        data: formData
+    }).done(function (data) {
+        context.datatableApi.clear().rows.add(data).draw();
     });
+}
+
+function clearFilter() {
+    $("#filter")[0].reset();
+    updateTable();
 }
