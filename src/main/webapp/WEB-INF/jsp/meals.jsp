@@ -47,7 +47,7 @@
             <div class="text-right mt-3">
                 <button class="btn btn-outline-danger" onclick="clearFilter()"><i class="fa fa-eraser"></i> <spring:message
                         code="common.cancel"/></button>
-                <button class="btn btn-outline-info ml-1" onclick="filter()" id="filter-button" type="button"><i class="fa fa-filter"></i> <spring:message
+                <button class="btn btn-outline-info ml-1" onclick="updateTable()" id="filter-button" type="button"><i class="fa fa-filter"></i> <spring:message
                         code="meal.filter"/></button>
             </div>
 

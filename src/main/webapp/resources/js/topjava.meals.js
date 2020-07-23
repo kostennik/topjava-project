@@ -41,7 +41,7 @@ function setDefaultValues() {
     $("#calories").val("1000");
 }
 
-function filter() {
+function updateTable() {
     var formData = $("#filter").serializeArray();
     $.ajax({
         type: "GET",
