@@ -39,6 +39,18 @@ $(function () {
             })
         }
     );
+    $(".checkbox").click(function () {
+        var id = $(this).attr("id");
+        var checked = $(this).is(":checked");
+        $.ajax({
+            url: context.ajaxUrl + id,
+            type: "POST",
+            data: {"checked" : checked}
+        }).done(function () {
+            updateTable();
+            successNoty(checked === false ? "unchecked" : "checked");
+        });
+    });
 });
 
 function updateTable() {

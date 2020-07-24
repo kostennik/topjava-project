@@ -37,4 +37,11 @@ public class AdminUIController extends AbstractUserController {
             super.create(user);
         }
     }
+
+    @PostMapping("/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void updateCheckboxState(@PathVariable int id, @RequestParam Boolean checked) {
+        service.updateStatus(id, checked);
+        log.info("User with id {} state was change to {}", id, checked);
+    }
 }
