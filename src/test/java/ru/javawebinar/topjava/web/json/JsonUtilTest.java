@@ -5,9 +5,7 @@ import ru.javawebinar.topjava.model.Meal;
 
 import java.util.List;
 
-import static ru.javawebinar.topjava.MealTestData.ADMIN_MEAL1;
-import static ru.javawebinar.topjava.MealTestData.MEALS;
-import static ru.javawebinar.topjava.TestData.assertMatch;
+import static ru.javawebinar.topjava.MealTestData.*;
 
 class JsonUtilTest {
 

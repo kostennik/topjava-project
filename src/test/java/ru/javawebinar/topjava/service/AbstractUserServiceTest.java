@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static ru.javawebinar.topjava.TestData.assertMatch;
 import static ru.javawebinar.topjava.UserTestData.*;
 
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
@@ -79,7 +78,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     void getAll() throws Exception {
         List<User> all = service.getAll();
-        assertMatch( all, ADMIN, USER);
+        assertMatch(all, ADMIN, USER);
     }
 
     @Test
