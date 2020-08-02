@@ -2,6 +2,7 @@ package ru.javawebinar.topjava.util;
 
 import org.springframework.lang.Nullable;
 import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.to.MealBindTo;
 import ru.javawebinar.topjava.to.MealTo;
 
 import java.time.LocalDate;
@@ -39,5 +40,9 @@ public class MealsUtil {
 
     public static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
+    }
+
+    public static Meal createFromTo(MealBindTo mealBindTo) {
+        return new Meal(mealBindTo.getId(), mealBindTo.getDateTime(), mealBindTo.getDescription(), mealBindTo.getCalories());
     }
 }
