@@ -51,11 +51,4 @@ public class MealService {
     public Meal getWithUser(int id, int userId) {
         return checkNotFoundWithId(repository.getWithUser(id, userId), id);
     }
-
-    @Transactional
-    public void update(MealBindTo mealBindTo, int userId) {
-        Meal meal = get(mealBindTo.id(), userId);
-        Assert.notNull(meal, "meal must not be null");
-        repository.save(meal, userId);
-    }
 }

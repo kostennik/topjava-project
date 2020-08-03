@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealBindTo;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.MealsUtil;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -55,10 +56,11 @@ public class MealUIController extends AbstractMealController {
                     });
             return ResponseEntity.unprocessableEntity().body(joiner.toString());
         }
-        if (mealBindTo.isNew()) {
-            super.create(mealBindTo);
+        Meal meal = MealsUtil.createFromTo(mealBindTo);
+        if (meal.isNew()) {
+            super.create(meal);
         } else {
-            super.update(mealBindTo, mealBindTo.id());
+            super.update(meal, meal.id());
         }
         return ResponseEntity.ok().build();
     }

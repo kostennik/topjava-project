@@ -56,16 +56,6 @@ public abstract class AbstractMealController {
         service.update(meal, userId);
     }
 
-    public Meal create(MealBindTo mealBindTo) {
-        log.info("create mealBindTo from to {}", mealBindTo);
-        return create(MealsUtil.createFromTo(mealBindTo));
-    }
-
-    public void update(MealBindTo mealBindTo, int id) {
-        log.info("update mealBindTo {} with id={}", mealBindTo, id);
-        update(MealsUtil.createFromTo(mealBindTo), id);
-    }
-
     /**
      * <ol>Filter separately
      * <li>by date</li>

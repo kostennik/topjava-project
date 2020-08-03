@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.to.UserTo;
+import ru.javawebinar.topjava.util.UserUtil;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -52,7 +53,8 @@ public class AdminUIController extends AbstractUserController {
             return ResponseEntity.unprocessableEntity().body(joiner.toString());
         }
         if (userTo.isNew()) {
-            super.create(userTo);
+            User user = UserUtil.createNewFromTo(userTo);
+            super.create(user);
         } else {
             super.update(userTo, userTo.id());
         }
