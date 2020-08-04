@@ -21,8 +21,8 @@ function updateRow(id) {
     $("#modalTitle").html(i18n["editTitle"]);
     $.get(context.ajaxUrl + id, function (data) {
         $.each(data, function (key, value) {
-            if(key === "dateTime") {
-                value = value.replace("T", " ");
+            if (key === "dateTime") {
+                value = value.replace("T", " ").slice(0, 16);
             }
             form.find("input[name='" + key + "']").val(value);
         });
@@ -47,10 +47,19 @@ function updateTableByData(data) {
 }
 
 function save() {
+    var newForm = form.clone();
+    var dateTime = newForm.find("input[name='dateTime']").val();
+    if(dateTime !== undefined && dateTime !== "") {
+        newForm.find("input[name='dateTime']").val(dateTime.replace(" ", "T") + ":00");
+    }
+    var calories = newForm.find("input[name='calories']").val();
+    if(calories !== undefined && calories === "") {
+        newForm.find("input[name='calories']").val(0);
+    }
     $.ajax({
         type: "POST",
         url: context.ajaxUrl,
-        data: form.serialize()
+        data: newForm.serialize()
     }).done(function () {
         $("#editRow").modal("hide");
         context.updateTable();

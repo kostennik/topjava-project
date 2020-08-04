@@ -2,7 +2,6 @@ package ru.javawebinar.topjava.to;
 
 import org.hibernate.validator.constraints.Range;
 
-import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -13,16 +12,14 @@ import java.util.Objects;
 public class MealBindTo extends BaseTo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @Column(name = "date_time", nullable = false)
-    @NotNull(message = "dateTime can't be empty")
+    @NotNull
     private LocalDateTime dateTime;
 
-    @Column(name = "description", nullable = false)
-    @NotBlank(message = "description can't be empty")
+    @NotBlank
     @Size(min = 2, max = 120, message = "description must be greater than 2 and less than 120 characters")
     private String description;
 
-    @Column(name = "calories", nullable = false)
+    @NotNull
     @Range(min = 10, max = 5000, message = "calories value must be greater than 10 and less than 5000 points")
     private int calories;
 

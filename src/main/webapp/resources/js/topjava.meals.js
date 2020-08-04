@@ -28,7 +28,7 @@ $(function () {
                     "data": "dateTime",
                     "render": function (data, type, row) {
                         if (type === "display") {
-                            return data.replace("T", " ");
+                            return data.replace("T", " ").slice(0, 16);
                         }
                         return data;
                     }
@@ -103,5 +103,8 @@ $(function () {
                 minTime: $('#startTime').val() ? $('#startTime').val() : false
             })
         }
+    });
+    $('#dateTime').datetimepicker({
+        format: "Y-m-d H:i"
     });
 });

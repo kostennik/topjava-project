@@ -11,7 +11,8 @@ import ru.javawebinar.topjava.util.UserUtil;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.StringJoiner;
+
+import static ru.javawebinar.topjava.web.BindingResultUtil.getBindingResultResponseEntity;
 
 @RestController
 @RequestMapping("/ajax/admin/users")
@@ -38,19 +39,9 @@ public class AdminUIController extends AbstractUserController {
 
     @PostMapping
     public ResponseEntity<String> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
-        if (result.hasErrors()) {
-            StringJoiner joiner = new StringJoiner("<br>");
-            result.getFieldErrors().forEach(
-                    fe -> {
-                        String msg = fe.getDefaultMessage();
-                        if (msg != null) {
-                            if (!msg.startsWith(fe.getField())) {
-                                msg = fe.getField() + ' ' + msg;
-                            }
-                            joiner.add(msg);
-                        }
-                    });
-            return ResponseEntity.unprocessableEntity().body(joiner.toString());
+        ResponseEntity<String> responseEntity = getBindingResultResponseEntity(result);
+        if (responseEntity != null) {
+            return responseEntity;
         }
         if (userTo.isNew()) {
             User user = UserUtil.createNewFromTo(userTo);
