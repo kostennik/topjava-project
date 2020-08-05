@@ -2,9 +2,11 @@ package ru.javawebinar.topjava.web.user;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.to.UserTo;
+import ru.javawebinar.topjava.util.UserUtil;
 
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
@@ -26,8 +28,11 @@ public class ProfileRestController extends AbstractUserController {
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
     public void update(@RequestBody UserTo userTo) {
-        super.update(userTo, authUserId());
+        User user = super.get(authUserId());
+        User updatedUser = UserUtil.updateFromTo(user, userTo);
+        super.update(updatedUser, updatedUser.id());
     }
 
     @GetMapping(value = "/text")

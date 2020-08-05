@@ -66,13 +66,6 @@ public class UserService implements UserDetailsService {
 
     @CacheEvict(value = "users", allEntries = true)
     @Transactional
-    public void update(UserTo userTo) {
-        User user = get(userTo.id());
-        repository.save(UserUtil.updateFromTo(user, userTo));
-    }
-
-    @CacheEvict(value = "users", allEntries = true)
-    @Transactional
     public void enable(int id, boolean enabled) {
         User user = get(id);
         user.setEnabled(enabled);

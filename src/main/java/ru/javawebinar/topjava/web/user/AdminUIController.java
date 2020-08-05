@@ -3,6 +3,7 @@ package ru.javawebinar.topjava.web.user;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.User;
@@ -38,6 +39,7 @@ public class AdminUIController extends AbstractUserController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<String> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
         ResponseEntity<String> responseEntity = getBindingResultResponseEntity(result);
         if (responseEntity != null) {
@@ -47,7 +49,9 @@ public class AdminUIController extends AbstractUserController {
             User user = UserUtil.createNewFromTo(userTo);
             super.create(user);
         } else {
-            super.update(userTo, userTo.id());
+            User user = super.get(userTo.id());
+            User updatedUser = UserUtil.updateFromTo(user, userTo);
+            super.update(updatedUser, updatedUser.id());
         }
         return ResponseEntity.ok().build();
     }
