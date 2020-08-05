@@ -8,6 +8,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
+import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
@@ -17,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javawebinar.topjava.MealTestData.*;
+import static ru.javawebinar.topjava.TestData.assertMatch;
+import static ru.javawebinar.topjava.TestData.contentJson;
 import static ru.javawebinar.topjava.TestUtil.*;
 import static ru.javawebinar.topjava.UserTestData.USER;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
@@ -90,7 +93,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+                .andExpect(contentJson(MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
     }
 
     @Test
@@ -101,7 +104,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(USER)))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(contentJson(createTo(MEAL5, true), createTo(MEAL1, false)));
+                .andExpect(contentJson(MealTo.class, createTo(MEAL5, true), createTo(MEAL1, false)));
     }
 
     @Test
@@ -109,6 +112,6 @@ class MealRestControllerTest extends AbstractControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=&endTime=")
                 .with(userHttpBasic(USER)))
                 .andExpect(status().isOk())
-                .andExpect(contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+                .andExpect(contentJson(MealTo.class, getTos(MEALS, USER.getCaloriesPerDay())));
     }
 }
