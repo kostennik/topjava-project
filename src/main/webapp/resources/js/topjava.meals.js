@@ -1,5 +1,3 @@
-var mealAjaxUrl = "ajax/profile/meals/";
-
 function updateFilteredTable() {
     $.ajax({
         type: "GET",
@@ -10,28 +8,18 @@ function updateFilteredTable() {
 
 function clearFilter() {
     $("#filter")[0].reset();
-    $.get(mealAjaxUrl, updateTableByData);
+    $.get("ajax/profile/meals/", updateTableByData);
 }
 
 $(function () {
     makeEditable({
-        ajaxUrl: mealAjaxUrl,
+        ajaxUrl: "ajax/profile/meals/",
         datatableApi: $("#datatable").DataTable({
-            "ajax": {
-                "url": mealAjaxUrl,
-                "dataSrc": ""
-            },
             "paging": false,
             "info": true,
             "columns": [
                 {
-                    "data": "dateTime",
-                    "render": function (data, type, row) {
-                        if (type === "display") {
-                            return data.replace("T", " ").slice(0, 16);
-                        }
-                        return data;
-                    }
+                    "data": "dateTime"
                 },
                 {
                     "data": "description"
@@ -40,14 +28,12 @@ $(function () {
                     "data": "calories"
                 },
                 {
-                    "orderable": false,
-                    "defaultContent": "",
-                    "render": renderEditBtn
+                    "defaultContent": "Edit",
+                    "orderable": false
                 },
                 {
-                    "orderable": false,
-                    "defaultContent": "",
-                    "render": renderDeleteBtn
+                    "defaultContent": "Delete",
+                    "orderable": false
                 }
             ],
             "order": [
@@ -55,56 +41,8 @@ $(function () {
                     0,
                     "desc"
                 ]
-            ],
-            "createdRow": function (row, data, dataIndex) {
-                if (!data.excess) {
-                    $(row).attr("data-mealExcess", false);
-                } else {
-                    $(row).attr("data-mealExcess", true);
-                }
-            }
+            ]
         }),
         updateTable: updateFilteredTable
-    });
-
-    $.datetimepicker.setLocale('ru');
-    $("#startDate").datetimepicker({
-        timepicker: false,
-        format: 'Y-m-d',
-        onShow: function (ct) {
-            this.setOptions({
-                maxDate: $('#endDate').val() ? $('#endDate').val() : false
-            })
-        }
-    });
-    $("#endDate").datetimepicker({
-        timepicker: false,
-        format: 'Y-m-d',
-        onShow: function (ct) {
-            this.setOptions({
-                minDate: $('#startDate').val() ? $('#startDate').val() : false
-            })
-        }
-    });
-    $('#startTime').datetimepicker({
-        datepicker: false,
-        format: 'H:i',
-        onShow: function (ct) {
-            this.setOptions({
-                maxTime: $('#endTime').val() ? $('#endTime').val() : false
-            })
-        }
-    });
-    $('#endTime').datetimepicker({
-        datepicker: false,
-        format: 'H:i',
-        onShow: function (ct) {
-            this.setOptions({
-                minTime: $('#startTime').val() ? $('#startTime').val() : false
-            })
-        }
-    });
-    $('#dateTime').datetimepicker({
-        format: "Y-m-d H:i"
     });
 });
