@@ -1,0 +1,206 @@
+Index: src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcMealRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcMealRepository.java	(date 1576063299000)
++++ src/main/java/ru/javawebinar/topjava/repository/jdbc/JdbcMealRepository.java	(date 1576063874080)
+@@ -11,6 +11,7 @@
+ import org.springframework.transaction.annotation.Transactional;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.repository.MealRepository;
++import ru.javawebinar.topjava.util.ValidationUtil;
+ 
+ import java.time.LocalDateTime;
+ import java.util.List;
+@@ -39,6 +40,8 @@
+     @Override
+     @Transactional
+     public Meal save(Meal meal, int userId) {
++        ValidationUtil.validate(meal);
++
+         MapSqlParameterSource map = new MapSqlParameterSource()
+                 .addValue("id", meal.getId())
+                 .addValue("description", meal.getDescription())
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractServiceTest.java	(date 1576063299000)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractServiceTest.java	(date 1576064289444)
+@@ -8,7 +8,6 @@
+ import org.springframework.test.context.jdbc.SqlConfig;
+ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+ import ru.javawebinar.topjava.ActiveDbProfileResolver;
+-import ru.javawebinar.topjava.Profiles;
+ import ru.javawebinar.topjava.TimingExtension;
+ 
+ import static org.junit.jupiter.api.Assertions.assertThrows;
+@@ -27,11 +26,6 @@
+     @Autowired
+     private Environment env;
+ 
+-    boolean isJpaBased() {
+-//        return Arrays.stream(env.getActiveProfiles()).noneMatch(Profiles.JDBC::equals);
+-        return env.acceptsProfiles(org.springframework.core.env.Profiles.of(Profiles.JPA, Profiles.DATAJPA));
+-    }
+-
+     //  Check root cause in JUnit: https://github.com/junit-team/junit4/pull/778
+     <T extends Throwable> void validateRootCause(Runnable runnable, Class<T> exceptionClass) {
+         assertThrows(exceptionClass, () -> {
+Index: src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576063299000)
++++ src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576063446463)
+@@ -5,6 +5,7 @@
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.http.MediaType;
+ import org.springframework.test.web.servlet.ResultActions;
++import ru.javawebinar.topjava.MealTestData;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.service.MealService;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+@@ -17,8 +18,7 @@
+ import static ru.javawebinar.topjava.MealTestData.*;
+ import static ru.javawebinar.topjava.TestUtil.readFromJson;
+ import static ru.javawebinar.topjava.TestUtil.readFromJsonMvcResult;
+-import static ru.javawebinar.topjava.UserTestData.USER;
+-import static ru.javawebinar.topjava.UserTestData.USER_ID;
++import static ru.javawebinar.topjava.UserTestData.*;
+ import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
+ import static ru.javawebinar.topjava.util.MealsUtil.createTo;
+ import static ru.javawebinar.topjava.util.MealsUtil.getTos;
+@@ -34,24 +34,31 @@
+ 
+     @Test
+     void get() throws Exception {
+-        perform(doGet(MEAL1_ID))
++        perform(doGet(ADMIN_MEAL_ID).basicAuth(ADMIN))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(result -> MEAL_MATCHERS.assertMatch(readFromJsonMvcResult(result, Meal.class), MEAL1));
++                .andExpect(result -> MEAL_MATCHERS.assertMatch(readFromJsonMvcResult(result, Meal.class), ADMIN_MEAL1));
++    }
++
++
++    @Test
++    void getUnauth() throws Exception {
++        perform(doGet(MEAL1_ID))
++                .andExpect(status().isUnauthorized());
+     }
+ 
+     @Test
+     void delete() throws Exception {
+-        perform(doDelete(MEAL1_ID))
++        perform(doDelete(MEAL1_ID).basicAuth(USER))
+                 .andExpect(status().isNoContent());
+         assertThrows(NotFoundException.class, () -> mealService.get(MEAL1_ID, USER_ID));
+     }
+ 
+     @Test
+     void update() throws Exception {
+-        Meal updated = getUpdated();
+-        perform(doPut(MEAL1_ID).jsonBody(updated))
++        Meal updated = MealTestData.getUpdated();
++        perform(doPut(MEAL1_ID).jsonBody(updated).basicAuth(USER))
+                 .andExpect(status().isNoContent());
+ 
+         MEAL_MATCHERS.assertMatch(mealService.get(MEAL1_ID, START_SEQ), updated);
+@@ -59,8 +66,8 @@
+ 
+     @Test
+     void createWithLocation() throws Exception {
+-        Meal newMeal = getNew();
+-        ResultActions action = perform(doPost().jsonBody(newMeal));
++        Meal newMeal = MealTestData.getNew();
++        ResultActions action = perform(doPost().jsonBody(newMeal).basicAuth(USER));
+ 
+         Meal created = readFromJson(action, Meal.class);
+         Integer newId = created.getId();
+@@ -71,7 +78,7 @@
+ 
+     @Test
+     void getAll() throws Exception {
+-        perform(doGet())
++        perform(doGet().basicAuth(USER))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+@@ -80,7 +87,7 @@
+ 
+     @Test
+     void filter() throws Exception {
+-        perform(doGet("filter").unwrap()
++        perform(doGet("filter").basicAuth(USER).unwrap()
+                 .param("startDate", "2015-05-30").param("startTime", "07:00")
+                 .param("endDate", "2015-05-31").param("endTime", "11:00"))
+                 .andExpect(status().isOk())
+@@ -90,7 +97,7 @@
+ 
+     @Test
+     void filterAll() throws Exception {
+-        perform(doGet("filter?startDate=&endTime="))
++        perform(doGet("filter?startDate=&endTime=").basicAuth(USER))
+                 .andExpect(status().isOk())
+                 .andExpect(MEAL_TO_MATCHERS.contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+     }
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(date 1576063299000)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(date 1576063945888)
+@@ -1,6 +1,5 @@
+ package ru.javawebinar.topjava.service;
+ 
+-import org.junit.jupiter.api.Assumptions;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import ru.javawebinar.topjava.model.Meal;
+@@ -101,7 +100,6 @@
+ 
+     @Test
+     void createWithException() throws Exception {
+-        Assumptions.assumeTrue(isJpaBased(), "Validation not supported (JPA only)");
+         validateRootCause(() -> service.create(new Meal(null, of(2015, Month.JUNE, 1, 18, 0), "  ", 300), USER_ID), ConstraintViolationException.class);
+         validateRootCause(() -> service.create(new Meal(null, null, "Description", 300), USER_ID), ConstraintViolationException.class);
+         validateRootCause(() -> service.create(new Meal(null, of(2015, Month.JUNE, 1, 18, 0), "Description", 9), USER_ID), ConstraintViolationException.class);
+Index: src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1576063299000)
++++ src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1576063483495)
+@@ -4,9 +4,8 @@
+ 
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+-import static ru.javawebinar.topjava.MealTestData.MEALS;
+ import static ru.javawebinar.topjava.UserTestData.ADMIN;
+-import static ru.javawebinar.topjava.util.MealsUtil.getTos;
++import static ru.javawebinar.topjava.UserTestData.USER;
+ 
+ class RootControllerTest extends AbstractControllerTest {
+ 
+@@ -33,11 +32,10 @@
+ 
+     @Test
+     void getMeals() throws Exception {
+-        perform(doGet("meals"))
++        perform(doGet("meals").auth(USER))
+                 .andDo(print())
+                 .andExpect(status().isOk())
+                 .andExpect(view().name("meals"))
+-                .andExpect(forwardedUrl("/WEB-INF/jsp/meals.jsp"))
+-                .andExpect(model().attribute("meals", getTos(MEALS, SecurityUtil.authUserCaloriesPerDay())));
++                .andExpect(forwardedUrl("/WEB-INF/jsp/meals.jsp"));
+     }
+ }
+\ No newline at end of file

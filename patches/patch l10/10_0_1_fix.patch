@@ -1,0 +1,92 @@
+Index: .codacy.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .codacy.yml	(revision 6aa8229dc075fc87beb4a92b43090f5ebf5c5eec)
++++ .codacy.yml	(date 1575906884373)
+@@ -1,5 +1,5 @@
+ ---
+ exclude_paths:
+   - 'src/main/webapp/**'
+-  - 'README.md'
++  - '**.md'
+   - '**.sql'
+\ No newline at end of file
+Index: src/main/webapp/WEB-INF/jsp/login.jsp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/jsp/login.jsp	(revision 6aa8229dc075fc87beb4a92b43090f5ebf5c5eec)
++++ src/main/webapp/WEB-INF/jsp/login.jsp	(date 1576096942238)
+@@ -36,7 +36,8 @@
+             </button>
+         </p>
+         <br/>
+-        <p>Стек технологий: <a href="http://projects.spring.io/spring-security/">Spring Security</a>,
++        <div class="lead py-4">Стек технологий: <br>
++            <a href="http://projects.spring.io/spring-security/">Spring Security</a>,
+             <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html">Spring MVC</a>,
+             <a href="http://projects.spring.io/spring-data-jpa/">Spring Data JPA</a>,
+             <a href="http://spring.io/blog/2014/05/07/preview-spring-security-test-method-security">Spring Security
+@@ -56,7 +57,8 @@
+             <a href="http://hamcrest.org/JavaHamcrest/">Hamcrest</a>,
+             <a href="http://jquery.com/">jQuery</a>,
+             <a href="http://ned.im/noty/">jQuery notification</a>,
+-            <a href="http://getbootstrap.com/">Bootstrap</a>.</p>
++            <a href="http://getbootstrap.com/">Bootstrap</a>.
++        </div>
+     </div>
+ </div>
+ <div class="container lead">
+Index: src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java	(revision 6aa8229dc075fc87beb4a92b43090f5ebf5c5eec)
++++ src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java	(date 1576096861058)
+@@ -24,7 +24,7 @@
+ 
+     @Override
+     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+-    public User get(@PathVariable("id") int id) {
++    public User get(@PathVariable int id) {
+         return super.get(id);
+     }
+ 
+@@ -40,15 +40,8 @@
+         if (result.hasErrors()) {
+             StringJoiner joiner = new StringJoiner("<br>");
+             result.getFieldErrors().forEach(
+-                    fe -> {
+-                        String msg = fe.getDefaultMessage();
+-                        if (msg != null) {
+-                            if (!msg.startsWith(fe.getField())) {
+-                                msg = fe.getField() + ' ' + msg;
+-                            }
+-                            joiner.add(msg);
+-                        }
+-                    });
++                    fe -> joiner.add(String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
++            );
+             return ResponseEntity.unprocessableEntity().body(joiner.toString());
+         }
+         if (userTo.isNew()) {
+Index: src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(revision 6aa8229dc075fc87beb4a92b43090f5ebf5c5eec)
++++ src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1576096861065)
+@@ -31,7 +31,7 @@
+     }
+ 
+     @Test
+-    void testMeals() throws Exception {
++    void getMeals() throws Exception {
+         mockMvc.perform(get("/meals"))
+                 .andDo(print())
+                 .andExpect(status().isOk())

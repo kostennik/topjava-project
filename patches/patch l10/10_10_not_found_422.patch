@@ -1,0 +1,87 @@
+Index: src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576079625000)
++++ src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576079753019)
+@@ -48,6 +48,12 @@
+                 .andExpect(status().isUnauthorized());
+     }
+ 
++    @Test
++    void getNotFound() throws Exception {
++        perform(doGet(ADMIN_MEAL_ID).basicAuth(USER))
++                .andExpect(status().isUnprocessableEntity());
++    }
++
+     @Test
+     void delete() throws Exception {
+         perform(doDelete(MEAL1_ID).basicAuth(USER))
+@@ -55,6 +61,13 @@
+         assertThrows(NotFoundException.class, () -> mealService.get(MEAL1_ID, USER_ID));
+     }
+ 
++    @Test
++    void deleteNotFound() throws Exception {
++        perform(doDelete(ADMIN_MEAL_ID).basicAuth(USER))
++                .andDo(print())
++                .andExpect(status().isUnprocessableEntity());
++    }
++
+     @Test
+     void update() throws Exception {
+         Meal updated = MealTestData.getUpdated();
+Index: src/main/java/ru/javawebinar/topjava/util/exception/NotFoundException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/exception/NotFoundException.java	(date 1576079625000)
++++ src/main/java/ru/javawebinar/topjava/util/exception/NotFoundException.java	(date 1576079633080)
+@@ -1,5 +1,10 @@
+ package ru.javawebinar.topjava.util.exception;
+ 
++import org.springframework.http.HttpStatus;
++import org.springframework.web.bind.annotation.ResponseStatus;
++
++//  http://stackoverflow.com/a/22358422/548473
++@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY, reason = "No data found")  // 422
+ public class NotFoundException extends RuntimeException {
+     public NotFoundException(String message) {
+         super(message);
+Index: src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1576079625000)
++++ src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1576079857600)
+@@ -37,6 +37,13 @@
+                 .andExpect(USER_MATCHERS.contentJson(ADMIN));
+     }
+ 
++    @Test
++    void getNotFound() throws Exception {
++        perform(doGet(1).basicAuth(ADMIN))
++                .andExpect(status().isUnprocessableEntity())
++                .andDo(print());
++    }
++
+     @Test
+     void getByEmail() throws Exception {
+         perform(doGet("by?email={email}", ADMIN.getEmail()).basicAuth(ADMIN))
+@@ -53,6 +60,13 @@
+         assertThrows(NotFoundException.class, () -> userService.get(USER_ID));
+     }
+ 
++    @Test
++    void deleteNotFound() throws Exception {
++        perform(doDelete(1).basicAuth(ADMIN))
++                .andExpect(status().isUnprocessableEntity())
++                .andDo(print());
++    }
++
+     @Test
+     void getUnAuth() throws Exception {
+         perform(doGet())

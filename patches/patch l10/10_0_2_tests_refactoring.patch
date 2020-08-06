@@ -1,0 +1,931 @@
+Index: src/test/java/ru/javawebinar/topjava/TestMatchers.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/TestMatchers.java	(date 1576097331729)
++++ src/test/java/ru/javawebinar/topjava/TestMatchers.java	(date 1576097331729)
+@@ -0,0 +1,60 @@
++package ru.javawebinar.topjava;
++
++import org.springframework.test.web.servlet.ResultMatcher;
++
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static ru.javawebinar.topjava.TestUtil.readListFromJsonMvcResult;
++
++public class TestMatchers<T> {
++    private final Class<T> clazz;
++    private final String[] fieldsToIgnore;
++    private final boolean useEquals;
++
++    public static <T> TestMatchers<T> useFieldsComparator(Class<T> clazz, String... fieldsToIgnore) {
++        return new TestMatchers<>(clazz, false, fieldsToIgnore);
++    }
++
++    public static <T> TestMatchers<T> useEquals(Class<T> clazz) {
++        return new TestMatchers<>(clazz, true);
++    }
++
++    private TestMatchers(Class<T> clazz, boolean useEquals, String... fieldsToIgnore) {
++        this.clazz = clazz;
++        this.useEquals = useEquals;
++        this.fieldsToIgnore = fieldsToIgnore;
++    }
++
++    public void assertMatch(T actual, T expected) {
++        if (useEquals) {
++            assertThat(actual).isEqualTo(expected);
++        } else {
++            assertThat(actual).isEqualToIgnoringGivenFields(expected, fieldsToIgnore);
++        }
++    }
++
++    public void assertMatch(Iterable<T> actual, T... expected) {
++        assertMatch(actual, List.of(expected));
++    }
++
++    public void assertMatch(Iterable<T> actual, Iterable<T> expected) {
++        if (useEquals) {
++            assertThat(actual).isEqualTo(expected);
++        } else {
++            assertThat(actual).usingElementComparatorIgnoringFields(fieldsToIgnore).isEqualTo(expected);
++        }
++    }
++
++    public ResultMatcher contentJson(T expected) {
++        return result -> assertMatch(TestUtil.readFromJsonMvcResult(result, clazz), expected);
++    }
++
++    public ResultMatcher contentJson(T... expected) {
++        return contentJson(List.of(expected));
++    }
++
++    public ResultMatcher contentJson(Iterable<T> expected) {
++        return result -> assertMatch(readListFromJsonMvcResult(result, clazz), expected);
++    }
++}
+Index: src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaMealServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaMealServiceTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaMealServiceTest.java	(date 1576097331674)
+@@ -17,8 +17,8 @@
+     @Test
+     void getWithUser() throws Exception {
+         Meal adminMeal = service.getWithUser(ADMIN_MEAL_ID, ADMIN_ID);
+-        assertMatch(adminMeal, ADMIN_MEAL1);
+-        UserTestData.assertMatch(adminMeal.getUser(), UserTestData.ADMIN);
++        MEAL_MATCHERS.assertMatch(adminMeal, ADMIN_MEAL1);
++        UserTestData.USER_MATCHERS.assertMatch(adminMeal.getUser(), UserTestData.ADMIN);
+     }
+ 
+     @Test
+Index: src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaUserServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaUserServiceTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/service/datajpa/DataJpaUserServiceTest.java	(date 1576097331679)
+@@ -16,8 +16,8 @@
+     @Test
+     void getWithMeals() throws Exception {
+         User admin = service.getWithMeals(ADMIN_ID);
+-        assertMatch(admin, ADMIN);
+-        MealTestData.assertMatch(admin.getMeals(), MealTestData.ADMIN_MEAL2, MealTestData.ADMIN_MEAL1);
++        USER_MATCHERS.assertMatch(admin, ADMIN);
++        MealTestData.MEAL_MATCHERS.assertMatch(admin.getMeals(), MealTestData.ADMIN_MEAL2, MealTestData.ADMIN_MEAL1);
+     }
+ 
+     @Test
+Index: src/test/java/ru/javawebinar/topjava/MealTestData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/MealTestData.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/MealTestData.java	(date 1576097331725)
+@@ -1,6 +1,5 @@
+ package ru.javawebinar.topjava;
+ 
+-import org.springframework.test.web.servlet.ResultMatcher;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.to.MealTo;
+ 
+@@ -8,8 +7,6 @@
+ import java.util.List;
+ 
+ import static java.time.LocalDateTime.of;
+-import static org.assertj.core.api.Assertions.assertThat;
+-import static ru.javawebinar.topjava.TestUtil.readListFromJsonMvcResult;
+ import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
+ 
+ public class MealTestData {
+@@ -36,23 +33,6 @@
+         return new Meal(MEAL1_ID, MEAL1.getDateTime(), "Обновленный завтрак", 200);
+     }
+ 
+-    public static void assertMatch(Meal actual, Meal expected) {
+-        assertThat(actual).isEqualToIgnoringGivenFields(expected, "user");
+-    }
+-
+-    public static void assertMatch(Iterable<Meal> actual, Meal... expected) {
+-        assertMatch(actual, List.of(expected));
+-    }
+-
+-    public static void assertMatch(Iterable<Meal> actual, Iterable<Meal> expected) {
+-        assertThat(actual).usingElementComparatorIgnoringFields("user").isEqualTo(expected);
+-    }
+-
+-    public static ResultMatcher contentJson(MealTo... expected) {
+-        return contentJson(List.of(expected));
+-    }
+-
+-    public static ResultMatcher contentJson(Iterable<MealTo> expected) {
+-        return result -> assertThat(readListFromJsonMvcResult(result, MealTo.class)).isEqualTo(expected);
+-    }
++    public static TestMatchers<Meal> MEAL_MATCHERS = TestMatchers.useFieldsComparator(Meal.class, "user");
++    public static TestMatchers<MealTo> MEAL_TO_MATCHERS = TestMatchers.useEquals(MealTo.class);
+ }
+Index: src/test/java/ru/javawebinar/topjava/UserTestData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/UserTestData.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/UserTestData.java	(date 1576097331738)
+@@ -1,16 +1,11 @@
+ package ru.javawebinar.topjava;
+ 
+-import org.springframework.test.web.servlet.ResultMatcher;
+ import ru.javawebinar.topjava.model.Role;
+ import ru.javawebinar.topjava.model.User;
+ 
+ import java.util.Collections;
+ import java.util.Date;
+-import java.util.List;
+ 
+-import static org.assertj.core.api.Assertions.assertThat;
+-import static ru.javawebinar.topjava.TestUtil.readFromJsonMvcResult;
+-import static ru.javawebinar.topjava.TestUtil.readListFromJsonMvcResult;
+ import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
+ 
+ public class UserTestData {
+@@ -32,23 +27,5 @@
+         return updated;
+     }
+ 
+-    public static void assertMatch(User actual, User expected) {
+-        assertThat(actual).isEqualToIgnoringGivenFields(expected, "registered", "meals");
+-    }
+-
+-    public static void assertMatch(Iterable<User> actual, User... expected) {
+-        assertMatch(actual, List.of(expected));
+-    }
+-
+-    public static void assertMatch(Iterable<User> actual, Iterable<User> expected) {
+-        assertThat(actual).usingElementComparatorIgnoringFields("registered", "meals").isEqualTo(expected);
+-    }
+-
+-    public static ResultMatcher contentJson(User... expected) {
+-        return result -> assertMatch(readListFromJsonMvcResult(result, User.class), List.of(expected));
+-    }
+-
+-    public static ResultMatcher contentJson(User expected) {
+-        return result -> assertMatch(readFromJsonMvcResult(result, User.class), expected);
+-    }
++    public static TestMatchers<User> USER_MATCHERS = TestMatchers.useFieldsComparator(User.class, "registered", "meals");
+ }
+Index: src/test/java/ru/javawebinar/topjava/TestUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/TestUtil.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/TestUtil.java	(date 1576097331734)
+@@ -2,10 +2,8 @@
+ 
+ import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+ import org.springframework.security.core.context.SecurityContextHolder;
+-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+ import org.springframework.test.web.servlet.MvcResult;
+ import org.springframework.test.web.servlet.ResultActions;
+-import org.springframework.test.web.servlet.request.RequestPostProcessor;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+@@ -18,7 +16,7 @@
+     }
+ 
+     public static <T> T readFromJson(ResultActions action, Class<T> clazz) throws UnsupportedEncodingException {
+-        return JsonUtil.readValue(getContent(action.andReturn()), clazz);
++        return readFromJsonMvcResult(action.andReturn(), clazz);
+     }
+ 
+     public static <T> T readFromJsonMvcResult(MvcResult result, Class<T> clazz) throws UnsupportedEncodingException {
+@@ -33,12 +31,4 @@
+         SecurityContextHolder.getContext().setAuthentication(
+                 new UsernamePasswordAuthenticationToken(new AuthorizedUser(user), null, user.getRoles()));
+     }
+-
+-    public static RequestPostProcessor userHttpBasic(User user) {
+-        return SecurityMockMvcRequestPostProcessors.httpBasic(user.getEmail(), user.getPassword());
+-    }
+-
+-    public static RequestPostProcessor userAuth(User user) {
+-        return SecurityMockMvcRequestPostProcessors.authentication(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+-    }
+ }
+Index: src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(date 1576097331706)
+@@ -3,58 +3,54 @@
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.http.MediaType;
+-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.service.UserService;
+ import ru.javawebinar.topjava.to.UserTo;
+ import ru.javawebinar.topjava.util.UserUtil;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+-import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+-import static ru.javawebinar.topjava.TestUtil.userHttpBasic;
+ import static ru.javawebinar.topjava.UserTestData.*;
+-import static ru.javawebinar.topjava.web.user.ProfileRestController.REST_URL;
+ 
+ class ProfileRestControllerTest extends AbstractControllerTest {
+ 
+     @Autowired
+     private UserService userService;
+ 
++    ProfileRestControllerTest() {
++        super(ProfileRestController.REST_URL);
++    }
++
+     @Test
+     void get() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL)
+-                .with(userHttpBasic(USER)))
++        perform(doGet().basicAuth(USER))
+                 .andExpect(status().isOk())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(contentJson(USER));
++                .andExpect(USER_MATCHERS.contentJson(USER));
+     }
+ 
+     @Test
+     void getUnAuth() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL))
++        perform(doGet())
+                 .andExpect(status().isUnauthorized());
+     }
+ 
+     @Test
+     void delete() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL)
+-                .with(userHttpBasic(USER)))
++        perform(doDelete().basicAuth(USER))
+                 .andExpect(status().isNoContent());
+-        assertMatch(userService.getAll(), ADMIN);
++        USER_MATCHERS.assertMatch(userService.getAll(), ADMIN);
+     }
+ 
+     @Test
+     void update() throws Exception {
+         UserTo updatedTo = new UserTo(null, "newName", "newemail@ya.ru", "newPassword", 1500);
+-        mockMvc.perform(MockMvcRequestBuilders.put(REST_URL).contentType(MediaType.APPLICATION_JSON)
+-                .with(userHttpBasic(USER))
+-                .content(JsonUtil.writeValue(updatedTo)))
++        perform(doPut().jsonBody(updatedTo).basicAuth(USER))
+                 .andDo(print())
+                 .andExpect(status().isNoContent());
+ 
+-        assertMatch(userService.get(USER_ID), UserUtil.updateFromTo(new User(USER), updatedTo));
++        USER_MATCHERS.assertMatch(userService.get(USER_ID), UserUtil.updateFromTo(new User(USER), updatedTo));
+     }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1576097331702)
+@@ -4,54 +4,50 @@
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.http.MediaType;
+ import org.springframework.test.web.servlet.ResultActions;
+-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
++import ru.javawebinar.topjava.TestUtil;
+ import ru.javawebinar.topjava.UserTestData;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.service.UserService;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+-import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+ import static org.junit.jupiter.api.Assertions.assertFalse;
+ import static org.junit.jupiter.api.Assertions.assertThrows;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+-import static ru.javawebinar.topjava.TestUtil.readFromJson;
+-import static ru.javawebinar.topjava.TestUtil.userHttpBasic;
+ import static ru.javawebinar.topjava.UserTestData.*;
+ 
+ class AdminRestControllerTest extends AbstractControllerTest {
+ 
+-    private static final String REST_URL = AdminRestController.REST_URL + '/';
+-
+     @Autowired
+     private UserService userService;
+ 
++    AdminRestControllerTest() {
++        super(AdminRestController.REST_URL);
++    }
++
+     @Test
+     void get() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + ADMIN_ID)
+-                .with(userHttpBasic(ADMIN)))
++        perform(doGet(ADMIN_ID).basicAuth(ADMIN))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+                 // https://jira.spring.io/browse/SPR-14472
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(contentJson(ADMIN));
++                .andExpect(USER_MATCHERS.contentJson(ADMIN));
+     }
+ 
+     @Test
+     void getByEmail() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "by?email=" + ADMIN.getEmail())
+-                .with(userHttpBasic(ADMIN)))
++        perform(doGet("by?email={email}", ADMIN.getEmail()).basicAuth(ADMIN))
+                 .andExpect(status().isOk())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(contentJson(ADMIN));
++                .andExpect(USER_MATCHERS.contentJson(ADMIN));
+     }
+ 
+     @Test
+     void delete() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL + USER_ID)
+-                .with(userHttpBasic(ADMIN)))
++        perform(doDelete(USER_ID).basicAuth(ADMIN))
+                 .andDo(print())
+                 .andExpect(status().isNoContent());
+         assertThrows(NotFoundException.class, () -> userService.get(USER_ID));
+@@ -59,60 +55,51 @@
+ 
+     @Test
+     void getUnAuth() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL))
++        perform(doGet())
+                 .andExpect(status().isUnauthorized());
+     }
+ 
+     @Test
+     void getForbidden() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL)
+-                .with(userHttpBasic(USER)))
++        perform(doGet().basicAuth(USER))
+                 .andExpect(status().isForbidden());
+     }
+ 
+     @Test
+     void update() throws Exception {
+         User updated = UserTestData.getUpdated();
+-        mockMvc.perform(MockMvcRequestBuilders.put(REST_URL + USER_ID)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .with(userHttpBasic(ADMIN))
+-                .content(JsonUtil.writeValue(updated)))
++        perform(doPut(USER_ID).jsonBody(updated).basicAuth(ADMIN))
+                 .andExpect(status().isNoContent());
+ 
+-        assertMatch(userService.get(USER_ID), updated);
++        USER_MATCHERS.assertMatch(userService.get(USER_ID), updated);
+     }
+ 
+     @Test
+     void createWithLocation() throws Exception {
+         User newUser = UserTestData.getNew();
+-        ResultActions action = mockMvc.perform(MockMvcRequestBuilders.post(REST_URL)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .with(userHttpBasic(ADMIN))
+-                .content(JsonUtil.writeValue(newUser)))
++        ResultActions action = perform(doPost().jsonBody(newUser).basicAuth(ADMIN))
+                 .andExpect(status().isCreated());
+ 
+-        User created = readFromJson(action, User.class);
++        User created = TestUtil.readFromJson(action, User.class);
+         Integer newId = created.getId();
+         newUser.setId(newId);
+-        assertMatch(created, newUser);
+-        assertMatch(userService.get(newId), newUser);
++        USER_MATCHERS.assertMatch(created, newUser);
++        USER_MATCHERS.assertMatch(userService.get(newId), newUser);
+     }
+ 
+     @Test
+     void getAll() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL)
+-                .with(userHttpBasic(ADMIN)))
++        perform(doGet().basicAuth(ADMIN))
+                 .andExpect(status().isOk())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(contentJson(ADMIN, USER));
++                .andExpect(USER_MATCHERS.contentJson(ADMIN, USER));
+     }
+ 
+     @Test
+     void enable() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.patch(REST_URL + USER_ID)
++        perform(doPatch(USER_ID).basicAuth(ADMIN).unwrap()
+                 .param("enabled", "false")
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .with(userHttpBasic(ADMIN)))
++                .contentType(MediaType.APPLICATION_JSON))
+                 .andDo(print())
+                 .andExpect(status().isNoContent());
+ 
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractUserServiceTest.java	(date 1576097331688)
+@@ -26,8 +26,8 @@
+         User created = service.create(new User(newUser));
+         Integer newId = created.getId();
+         newUser.setId(newId);
+-        assertMatch(created, newUser);
+-        assertMatch(service.get(newId), newUser);
++        USER_MATCHERS.assertMatch(created, newUser);
++        USER_MATCHERS.assertMatch(service.get(newId), newUser);
+     }
+ 
+     @Test
+@@ -52,7 +52,7 @@
+     @Test
+     void get() throws Exception {
+         User user = service.get(ADMIN_ID);
+-        assertMatch(user, ADMIN);
++        USER_MATCHERS.assertMatch(user, ADMIN);
+     }
+ 
+     @Test
+@@ -64,20 +64,20 @@
+     @Test
+     void getByEmail() throws Exception {
+         User user = service.getByEmail("admin@gmail.com");
+-        assertMatch(user, ADMIN);
++        USER_MATCHERS.assertMatch(user, ADMIN);
+     }
+ 
+     @Test
+     void update() throws Exception {
+         User updated = getUpdated();
+         service.update(new User(updated));
+-        assertMatch(service.get(USER_ID), updated);
++        USER_MATCHERS.assertMatch(service.get(USER_ID), updated);
+     }
+ 
+     @Test
+     void getAll() throws Exception {
+         List<User> all = service.getAll();
+-        assertMatch(all, ADMIN, USER);
++        USER_MATCHERS.assertMatch(all, ADMIN, USER);
+     }
+ 
+     @Test
+Index: src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java	(date 1576097331692)
+@@ -14,7 +14,7 @@
+         String json = JsonUtil.writeValue(ADMIN_MEAL1);
+         System.out.println(json);
+         Meal meal = JsonUtil.readValue(json, Meal.class);
+-        assertMatch(meal, ADMIN_MEAL1);
++        MEAL_MATCHERS.assertMatch(meal, ADMIN_MEAL1);
+     }
+ 
+     @Test
+@@ -22,6 +22,6 @@
+         String json = JsonUtil.writeValue(MEALS);
+         System.out.println(json);
+         List<Meal> meals = JsonUtil.readValues(json, Meal.class);
+-        assertMatch(meals, MEALS);
++        MEAL_MATCHERS.assertMatch(meals, MEALS);
+     }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576097331696)
+@@ -5,12 +5,10 @@
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.http.MediaType;
+ import org.springframework.test.web.servlet.ResultActions;
+-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.service.MealService;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+-import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+ import static org.junit.jupiter.api.Assertions.assertThrows;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+@@ -27,23 +25,25 @@
+ 
+ class MealRestControllerTest extends AbstractControllerTest {
+ 
+-    private static final String REST_URL = MealRestController.REST_URL + '/';
+-
+     @Autowired
+     private MealService mealService;
+ 
++    MealRestControllerTest() {
++        super(MealRestController.REST_URL);
++    }
++
+     @Test
+     void get() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + MEAL1_ID))
++        perform(doGet(MEAL1_ID))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(result -> assertMatch(readFromJsonMvcResult(result, Meal.class), MEAL1));
++                .andExpect(result -> MEAL_MATCHERS.assertMatch(readFromJsonMvcResult(result, Meal.class), MEAL1));
+     }
+ 
+     @Test
+     void delete() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.delete(REST_URL + MEAL1_ID))
++        perform(doDelete(MEAL1_ID))
+                 .andExpect(status().isNoContent());
+         assertThrows(NotFoundException.class, () -> mealService.get(MEAL1_ID, USER_ID));
+     }
+@@ -51,51 +51,47 @@
+     @Test
+     void update() throws Exception {
+         Meal updated = getUpdated();
+-
+-        mockMvc.perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
+-                .content(JsonUtil.writeValue(updated)))
++        perform(doPut(MEAL1_ID).jsonBody(updated))
+                 .andExpect(status().isNoContent());
+ 
+-        assertMatch(mealService.get(MEAL1_ID, START_SEQ), updated);
++        MEAL_MATCHERS.assertMatch(mealService.get(MEAL1_ID, START_SEQ), updated);
+     }
+ 
+     @Test
+     void createWithLocation() throws Exception {
+         Meal newMeal = getNew();
+-        ResultActions action = mockMvc.perform(MockMvcRequestBuilders.post(REST_URL)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .content(JsonUtil.writeValue(newMeal)));
++        ResultActions action = perform(doPost().jsonBody(newMeal));
+ 
+         Meal created = readFromJson(action, Meal.class);
+         Integer newId = created.getId();
+         newMeal.setId(newId);
+-        assertMatch(created, newMeal);
+-        assertMatch(mealService.get(newId, USER_ID), newMeal);
++        MEAL_MATCHERS.assertMatch(created, newMeal);
++        MEAL_MATCHERS.assertMatch(mealService.get(newId, USER_ID), newMeal);
+     }
+ 
+     @Test
+     void getAll() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL))
++        perform(doGet())
+                 .andExpect(status().isOk())
+                 .andDo(print())
+                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+-                .andExpect(contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
++                .andExpect(MEAL_TO_MATCHERS.contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+     }
+ 
+     @Test
+     void filter() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "filter")
++        perform(doGet("filter").unwrap()
+                 .param("startDate", "2015-05-30").param("startTime", "07:00")
+                 .param("endDate", "2015-05-31").param("endTime", "11:00"))
+                 .andExpect(status().isOk())
+                 .andDo(print())
+-                .andExpect(contentJson(createTo(MEAL5, true), createTo(MEAL1, false)));
++                .andExpect(MEAL_TO_MATCHERS.contentJson(createTo(MEAL5, true), createTo(MEAL1, false)));
+     }
+ 
+     @Test
+     void filterAll() throws Exception {
+-        mockMvc.perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=&endTime="))
++        perform(doGet("filter?startDate=&endTime="))
+                 .andExpect(status().isOk())
+-                .andExpect(contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
++                .andExpect(MEAL_TO_MATCHERS.contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+     }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/web/AbstractControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/AbstractControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/AbstractControllerTest.java	(date 1576097481099)
+@@ -1,18 +1,27 @@
+ package ru.javawebinar.topjava.web;
+ 
+ import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.http.MediaType;
++import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
++import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+ import org.springframework.test.context.ActiveProfiles;
+ import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+ import org.springframework.test.web.servlet.MockMvc;
++import org.springframework.test.web.servlet.ResultActions;
++import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
++import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+ import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.web.context.WebApplicationContext;
+ import org.springframework.web.filter.CharacterEncodingFilter;
+ import ru.javawebinar.topjava.AllActiveProfileResolver;
++import ru.javawebinar.topjava.model.User;
++import ru.javawebinar.topjava.web.json.JsonUtil;
+ 
+ import javax.annotation.PostConstruct;
+ 
+ import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
++import static ru.javawebinar.topjava.web.AbstractControllerTest.RequestWrapper.wrap;
+ 
+ @SpringJUnitWebConfig(locations = {
+         "classpath:spring/spring-app.xml",
+@@ -32,11 +41,17 @@
+         CHARACTER_ENCODING_FILTER.setForceEncoding(true);
+     }
+ 
+-    protected MockMvc mockMvc;
++    private MockMvc mockMvc;
+ 
+     @Autowired
+     private WebApplicationContext webApplicationContext;
+ 
++    private final String url;
++
++    public AbstractControllerTest(String url) {
++        this.url = url + '/';
++    }
++
+     @PostConstruct
+     private void postConstruct() {
+         mockMvc = MockMvcBuilders
+@@ -45,4 +60,83 @@
+                 .apply(springSecurity())
+                 .build();
+     }
++
++    public ResultActions perform(RequestWrapper wrapper) throws Exception {
++        return perform(wrapper.builder);
++    }
++
++    public ResultActions perform(MockHttpServletRequestBuilder builder) throws Exception {
++        return mockMvc.perform(builder);
++    }
++
++    protected RequestWrapper doGet(String urlTemplatePad, Object... uriVars) {
++        return wrap(MockMvcRequestBuilders.get(url + urlTemplatePad, uriVars));
++    }
++
++    protected RequestWrapper doGet() {
++        return wrap(MockMvcRequestBuilders.get(url));
++    }
++
++    protected RequestWrapper doGet(String pad) {
++        return wrap(MockMvcRequestBuilders.get(url + pad));
++    }
++
++    protected RequestWrapper doGet(int id) {
++        return doGet("{id}", id);
++    }
++
++    protected RequestWrapper doDelete() {
++        return wrap(MockMvcRequestBuilders.delete(url));
++    }
++
++    protected RequestWrapper doDelete(int id) {
++        return wrap(MockMvcRequestBuilders.delete(url + "{id}", id));
++    }
++
++    protected RequestWrapper doPut() {
++        return wrap(MockMvcRequestBuilders.put(url));
++    }
++
++    protected RequestWrapper doPut(int id) {
++        return wrap(MockMvcRequestBuilders.put(url + "{id}", id));
++    }
++
++    protected RequestWrapper doPost() {
++        return wrap(MockMvcRequestBuilders.post(url));
++    }
++
++    protected RequestWrapper doPatch(int id) {
++        return wrap(MockMvcRequestBuilders.patch(url + "{id}", id));
++    }
++
++    public static class RequestWrapper {
++        private final MockHttpServletRequestBuilder builder;
++
++        private RequestWrapper(MockHttpServletRequestBuilder builder) {
++            this.builder = builder;
++        }
++
++        public static RequestWrapper wrap(MockHttpServletRequestBuilder builder) {
++            return new RequestWrapper(builder);
++        }
++
++        public MockHttpServletRequestBuilder unwrap() {
++            return builder;
++        }
++
++        public <T> RequestWrapper jsonBody(T body) {
++            builder.contentType(MediaType.APPLICATION_JSON).content(JsonUtil.writeValue(body));
++            return this;
++        }
++
++        public RequestWrapper basicAuth(User user) {
++            builder.with(SecurityMockMvcRequestPostProcessors.httpBasic(user.getEmail(), user.getPassword()));
++            return this;
++        }
++
++        public RequestWrapper auth(User user) {
++            builder.with(SecurityMockMvcRequestPostProcessors.authentication(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())));
++            return this;
++        }
++    }
+ }
+Index: src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/service/AbstractMealServiceTest.java	(date 1576097331683)
+@@ -47,14 +47,14 @@
+         Meal created = service.create(newMeal, USER_ID);
+         Integer newId = created.getId();
+         newMeal.setId(newId);
+-        assertMatch(created, newMeal);
+-        assertMatch(service.get(newId, USER_ID), newMeal);
++        MEAL_MATCHERS.assertMatch(created, newMeal);
++        MEAL_MATCHERS.assertMatch(service.get(newId, USER_ID), newMeal);
+     }
+ 
+     @Test
+     void get() throws Exception {
+         Meal actual = service.get(ADMIN_MEAL_ID, ADMIN_ID);
+-        assertMatch(actual, ADMIN_MEAL1);
++        MEAL_MATCHERS.assertMatch(actual, ADMIN_MEAL1);
+     }
+ 
+     @Test
+@@ -73,7 +73,7 @@
+     void update() throws Exception {
+         Meal updated = getUpdated();
+         service.update(updated, USER_ID);
+-        assertMatch(service.get(MEAL1_ID, USER_ID), updated);
++        MEAL_MATCHERS.assertMatch(service.get(MEAL1_ID, USER_ID), updated);
+     }
+ 
+     @Test
+@@ -84,19 +84,19 @@
+ 
+     @Test
+     void getAll() throws Exception {
+-        assertMatch(service.getAll(USER_ID), MEALS);
++        MEAL_MATCHERS.assertMatch(service.getAll(USER_ID), MEALS);
+     }
+ 
+     @Test
+     void getBetween() throws Exception {
+-        assertMatch(service.getBetweenDates(
++        MEAL_MATCHERS.assertMatch(service.getBetweenDates(
+                 LocalDate.of(2015, Month.MAY, 30),
+                 LocalDate.of(2015, Month.MAY, 30), USER_ID), MEAL3, MEAL2, MEAL1);
+     }
+ 
+     @Test
+     void getBetweenWithNullDates() throws Exception {
+-        assertMatch(service.getBetweenDates(null, null, USER_ID), MEALS);
++        MEAL_MATCHERS.assertMatch(service.getBetweenDates(null, null, USER_ID), MEALS);
+     }
+ 
+     @Test
+Index: src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java	(date 1576097331715)
+@@ -3,16 +3,19 @@
+ import org.junit.jupiter.api.Test;
+ import org.springframework.http.MediaType;
+ 
+-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ 
+ class ResourceControllerTest extends AbstractControllerTest {
+ 
++    ResourceControllerTest() {
++        super("/resources/css/style.css");
++    }
++
+     @Test
+     void testResources() throws Exception {
+-        mockMvc.perform(get("/resources/css/style.css"))
++        perform(doGet())
+                 .andDo(print())
+                 .andExpect(content().contentType(MediaType.valueOf("text/css")))
+                 .andExpect(status().isOk());
+Index: src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1576097322000)
++++ src/test/java/ru/javawebinar/topjava/web/RootControllerTest.java	(date 1576097331719)
+@@ -2,20 +2,21 @@
+ 
+ import org.junit.jupiter.api.Test;
+ 
+-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+ import static ru.javawebinar.topjava.MealTestData.MEALS;
+-import static ru.javawebinar.topjava.TestUtil.userAuth;
+ import static ru.javawebinar.topjava.UserTestData.ADMIN;
+ import static ru.javawebinar.topjava.util.MealsUtil.getTos;
+ 
+ class RootControllerTest extends AbstractControllerTest {
+ 
++    RootControllerTest() {
++        super("");
++    }
++
+     @Test
+     void getUsers() throws Exception {
+-        mockMvc.perform(get("/users")
+-                .with(userAuth(ADMIN)))
++        perform(doGet("users").auth(ADMIN))
+                 .andDo(print())
+                 .andExpect(status().isOk())
+                 .andExpect(view().name("users"))
+@@ -24,7 +25,7 @@
+ 
+     @Test
+     void unAuth() throws Exception {
+-        mockMvc.perform(get("/users"))
++        perform(doGet("users"))
+                 .andDo(print())
+                 .andExpect(status().is3xxRedirection())
+                 .andExpect(redirectedUrl("http://localhost/login"));
+@@ -32,7 +33,7 @@
+ 
+     @Test
+     void getMeals() throws Exception {
+-        mockMvc.perform(get("/meals"))
++        perform(doGet("meals"))
+                 .andDo(print())
+                 .andExpect(status().isOk())
+                 .andExpect(view().name("meals"))
