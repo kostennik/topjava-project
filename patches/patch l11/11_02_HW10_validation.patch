@@ -1,0 +1,502 @@
+Index: src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/user/AdminUIController.java	(date 1576706614753)
+@@ -2,12 +2,9 @@
+ 
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.MediaType;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.to.UserTo;
+-import ru.javawebinar.topjava.util.ValidationUtil;
+ 
+ import javax.validation.Valid;
+ import java.util.List;
+@@ -36,17 +33,12 @@
+     }
+ 
+     @PostMapping
+-    public ResponseEntity<String> createOrUpdate(@Valid UserTo userTo, BindingResult result) {
+-        if (result.hasErrors()) {
+-            // TODO change to exception handler
+-            return ValidationUtil.getErrorResponse(result);
+-        }
++    public void createOrUpdate(@Valid UserTo userTo) {
+         if (userTo.isNew()) {
+             super.create(userTo);
+         } else {
+             super.update(userTo, userTo.id());
+         }
+-        return ResponseEntity.ok().build();
+     }
+ 
+     @Override
+Index: src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/test/java/ru/javawebinar/topjava/web/meal/MealRestControllerTest.java	(date 1576706614776)
+@@ -8,13 +8,13 @@
+ import ru.javawebinar.topjava.MealTestData;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.service.MealService;
++import ru.javawebinar.topjava.util.exception.ErrorType;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+ 
+ import static org.junit.jupiter.api.Assertions.assertThrows;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+ import static ru.javawebinar.topjava.MealTestData.*;
+ import static ru.javawebinar.topjava.TestUtil.readFromJson;
+ import static ru.javawebinar.topjava.TestUtil.readFromJsonMvcResult;
+@@ -114,4 +114,24 @@
+                 .andExpect(status().isOk())
+                 .andExpect(MEAL_TO_MATCHERS.contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+     }
++
++    @Test
++    void createInvalid() throws Exception {
++        Meal invalid = new Meal(null, null, "Dummy", 200);
++        perform(doPost().jsonBody(invalid).basicAuth(ADMIN))
++                .andDo(print())
++                .andExpect(status().isUnprocessableEntity())
++                .andExpect(jsonPath("$.type").value(ErrorType.VALIDATION_ERROR.name()))
++                .andDo(print());
++    }
++
++    @Test
++    void updateInvalid() throws Exception {
++        Meal invalid = new Meal(MEAL1_ID, null, null, 6000);
++        perform(doPut(MEAL1_ID).jsonBody(invalid).basicAuth(USER))
++                .andDo(print())
++                .andExpect(status().isUnprocessableEntity())
++                .andExpect(jsonPath("$.type").value(ErrorType.VALIDATION_ERROR.name()))
++                .andDo(print());
++    }
+ }
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/meal/MealRestController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/meal/MealRestController.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/meal/MealRestController.java	(date 1576706542023)
+@@ -9,6 +9,7 @@
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.to.MealTo;
+ 
++import javax.validation.Valid;
+ import java.net.URI;
+ import java.time.LocalDate;
+ import java.time.LocalTime;
+@@ -41,12 +42,12 @@
+     @Override
+     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+     @ResponseStatus(value = HttpStatus.NO_CONTENT)
+-    public void update(@RequestBody Meal meal, @PathVariable int id) {
++    public void update(@Valid @RequestBody Meal meal, @PathVariable int id) {
+         super.update(meal, id);
+     }
+ 
+     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+-    public ResponseEntity<Meal> createWithLocation(@RequestBody Meal meal) {
++    public ResponseEntity<Meal> createWithLocation(@Valid @RequestBody Meal meal) {
+         Meal created = super.create(meal);
+ 
+         URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
+Index: src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java	(date 1576706681208)
+@@ -2,13 +2,10 @@
+ 
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.MediaType;
+-import org.springframework.http.ResponseEntity;
+ import org.springframework.lang.Nullable;
+-import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.model.Meal;
+ import ru.javawebinar.topjava.to.MealTo;
+-import ru.javawebinar.topjava.util.ValidationUtil;
+ 
+ import javax.validation.Valid;
+ import java.time.LocalDate;
+@@ -40,17 +37,12 @@
+ 
+     @PostMapping
+     @ResponseStatus(value = HttpStatus.NO_CONTENT)
+-    public ResponseEntity<String> createOrUpdate(@Valid Meal meal, BindingResult result) {
+-        if (result.hasErrors()) {
+-            // TODO change to exception handler
+-            return ValidationUtil.getErrorResponse(result);
+-        }
++    public void createOrUpdate(@Valid Meal meal) {
+         if (meal.isNew()) {
+             super.create(meal);
+         } else {
+             super.update(meal, meal.getId());
+         }
+-        return ResponseEntity.ok().build();
+     }
+ 
+     @Override
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- pom.xml	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ pom.xml	(date 1576706614800)
+@@ -30,6 +30,7 @@
+         <!--    Tests  -->
+         <junit.jupiter.version>5.5.2</junit.jupiter.version>
+         <hamcrest.version>1.3</hamcrest.version>
++        <json-path.version>2.4.0</json-path.version>
+ 
+         <!-- Hibernate -->
+         <hibernate.version>5.4.7.Final</hibernate.version>
+@@ -308,12 +309,19 @@
+             <version>${hamcrest.version}</version>
+             <scope>test</scope>
+         </dependency>
++        <dependency>
++            <groupId>com.jayway.jsonpath</groupId>
++            <artifactId>json-path</artifactId>
++            <version>${json-path.version}</version>
++            <scope>test</scope>
++        </dependency>
+ 
+         <dependency>
+             <groupId>org.springframework</groupId>
+             <artifactId>spring-test</artifactId>
+             <scope>test</scope>
+         </dependency>
++
+         <dependency>
+             <groupId>org.springframework.security</groupId>
+             <artifactId>spring-security-test</artifactId>
+Index: config/curl.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/curl.md	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ config/curl.md	(date 1576706542001)
+@@ -30,3 +30,4 @@
+ 
+ #### validate with Error
+ `curl -s -X POST -d '{}' -H 'Content-Type: application/json' http://localhost:8080/topjava/rest/admin/users --user admin@gmail.com:admin`
++`curl -s -X PUT -d '{"dateTime":"2015-05-30T07:00"}' -H 'Content-Type: application/json' http://localhost:8080/topjava/rest/profile/meals/100003 --user user@yandex.ru:password`
+Index: src/main/java/ru/javawebinar/topjava/web/user/ProfileRestController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/user/ProfileRestController.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/user/ProfileRestController.java	(date 1576706614760)
+@@ -8,6 +8,7 @@
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.to.UserTo;
+ 
++import javax.validation.Valid;
+ import java.net.URI;
+ 
+ import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
+@@ -30,7 +31,7 @@
+ 
+     @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+     @ResponseStatus(value = HttpStatus.CREATED)
+-    public ResponseEntity<User> register(@RequestBody UserTo userTo) {
++    public ResponseEntity<User> register(@Valid @RequestBody UserTo userTo) {
+         User created = super.create(userTo);
+         URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
+                 .path(REST_URL + "/{id}")
+@@ -41,7 +42,7 @@
+ 
+     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+     @ResponseStatus(HttpStatus.NO_CONTENT)
+-    public void update(@RequestBody UserTo userTo) {
++    public void update(@Valid @RequestBody UserTo userTo) {
+         super.update(userTo, authUserId());
+     }
+ 
+Index: src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/test/java/ru/javawebinar/topjava/web/user/ProfileRestControllerTest.java	(date 1576706614790)
+@@ -8,11 +8,11 @@
+ import ru.javawebinar.topjava.service.UserService;
+ import ru.javawebinar.topjava.to.UserTo;
+ import ru.javawebinar.topjava.util.UserUtil;
++import ru.javawebinar.topjava.util.exception.ErrorType;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+ 
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+ import static ru.javawebinar.topjava.TestUtil.readFromJson;
+ import static ru.javawebinar.topjava.UserTestData.*;
+ 
+@@ -70,4 +70,15 @@
+ 
+         USER_MATCHERS.assertMatch(userService.get(USER_ID), UserUtil.updateFromTo(new User(USER), updatedTo));
+     }
++
++    @Test
++    void updateInvalid() throws Exception {
++        UserTo updatedTo = new UserTo(null, null, "password", null, 1500);
++
++        perform(doPut().jsonBody(updatedTo).basicAuth(USER))
++                .andDo(print())
++                .andExpect(status().isUnprocessableEntity())
++                .andExpect(jsonPath("$.type").value(ErrorType.VALIDATION_ERROR.name()))
++                .andDo(print());
++    }
+ }
+\ No newline at end of file
+Index: src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/test/java/ru/javawebinar/topjava/web/user/AdminRestControllerTest.java	(date 1576706614784)
+@@ -6,16 +6,17 @@
+ import org.springframework.test.web.servlet.ResultActions;
+ import ru.javawebinar.topjava.TestUtil;
+ import ru.javawebinar.topjava.UserTestData;
++import ru.javawebinar.topjava.model.Role;
+ import ru.javawebinar.topjava.model.User;
+ import ru.javawebinar.topjava.service.UserService;
++import ru.javawebinar.topjava.util.exception.ErrorType;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ import ru.javawebinar.topjava.web.AbstractControllerTest;
+ 
+ import static org.junit.jupiter.api.Assertions.assertFalse;
+ import static org.junit.jupiter.api.Assertions.assertThrows;
+ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+ import static ru.javawebinar.topjava.UserTestData.*;
+ 
+ class AdminRestControllerTest extends AbstractControllerTest {
+@@ -82,7 +83,7 @@
+     @Test
+     void update() throws Exception {
+         User updated = UserTestData.getUpdated();
+-        perform(doPut(USER_ID).jsonBody(updated).basicAuth(ADMIN))
++        perform(doPut(USER_ID).jsonUserWithPassword(updated).basicAuth(ADMIN))
+                 .andExpect(status().isNoContent());
+ 
+         USER_MATCHERS.assertMatch(userService.get(USER_ID), updated);
+@@ -119,4 +120,25 @@
+ 
+         assertFalse(userService.get(USER_ID).isEnabled());
+     }
++
++
++    @Test
++    void createInvalid() throws Exception {
++        User expected = new User(null, null, "", "newPass", 7300, Role.ROLE_USER, Role.ROLE_ADMIN);
++        perform(doPost().jsonBody(expected).basicAuth(ADMIN))
++                .andExpect(status().isUnprocessableEntity())
++                .andExpect(jsonPath("$.type").value(ErrorType.VALIDATION_ERROR.name()))
++                .andDo(print());
++    }
++
++    @Test
++    void updateInvalid() throws Exception {
++        User updated = new User(USER);
++        updated.setName("");
++        perform(doPut(USER_ID).jsonBody(updated).basicAuth(ADMIN))
++                .andExpect(status().isUnprocessableEntity())
++                .andDo(print())
++                .andExpect(jsonPath("$.type").value(ErrorType.VALIDATION_ERROR.name()))
++                .andDo(print());
++    }
+ }
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/user/AdminRestController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/user/AdminRestController.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/user/AdminRestController.java	(date 1576706614741)
+@@ -7,6 +7,7 @@
+ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+ import ru.javawebinar.topjava.model.User;
+ 
++import javax.validation.Valid;
+ import java.net.URI;
+ import java.util.List;
+ 
+@@ -28,7 +29,7 @@
+     }
+ 
+     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+-    public ResponseEntity<User> createWithLocation(@RequestBody User user) {
++    public ResponseEntity<User> createWithLocation(@Valid @RequestBody User user) {
+         User created = super.create(user);
+         URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
+                 .path(REST_URL + "/{id}")
+@@ -46,7 +47,7 @@
+     @Override
+     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+     @ResponseStatus(value = HttpStatus.NO_CONTENT)
+-    public void update(@RequestBody User user, @PathVariable int id) {
++    public void update(@Valid @RequestBody User user, @PathVariable int id) {
+         super.update(user, id);
+     }
+ 
+Index: src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(date 1576706542017)
+@@ -1,14 +1,11 @@
+ package ru.javawebinar.topjava.util;
+ 
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.validation.BindingResult;
+ import ru.javawebinar.topjava.HasId;
+ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ 
+ import javax.validation.*;
+ import java.util.Set;
+-import java.util.stream.Collectors;
+ 
+ public class ValidationUtil {
+ 
+@@ -76,12 +73,4 @@
+             throw new ConstraintViolationException(violations);
+         }
+     }
+-
+-    public static ResponseEntity<String> getErrorResponse(BindingResult result) {
+-        return ResponseEntity.unprocessableEntity().body(
+-                result.getFieldErrors().stream()
+-                        .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
+-                        .collect(Collectors.joining("<br>"))
+-        );
+-    }
+ }
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/util/exception/ErrorInfo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/exception/ErrorInfo.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/util/exception/ErrorInfo.java	(date 1576706542012)
+@@ -3,11 +3,11 @@
+ public class ErrorInfo {
+     private final String url;
+     private final ErrorType type;
+-    private final String detail;
++    private final String[] details;
+ 
+-    public ErrorInfo(CharSequence url, ErrorType type, String detail) {
++    public ErrorInfo(CharSequence url, ErrorType type, String... details) {
+         this.url = url.toString();
+         this.type = type;
+-        this.detail = detail;
++        this.details = details;
+     }
+ }
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(date 1576706614768)
+@@ -7,6 +7,9 @@
+ import org.springframework.dao.DataIntegrityViolationException;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.converter.HttpMessageNotReadableException;
++import org.springframework.validation.BindException;
++import org.springframework.validation.BindingResult;
++import org.springframework.web.bind.MethodArgumentNotValidException;
+ import org.springframework.web.bind.annotation.ExceptionHandler;
+ import org.springframework.web.bind.annotation.ResponseStatus;
+ import org.springframework.web.bind.annotation.RestController;
+@@ -40,6 +43,19 @@
+         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
+     }
+ 
++    @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
++    @ExceptionHandler({BindException.class, MethodArgumentNotValidException.class})
++    public ErrorInfo bindValidationError(HttpServletRequest req, Exception e) {
++        BindingResult result = e instanceof BindException ?
++                ((BindException) e).getBindingResult() : ((MethodArgumentNotValidException) e).getBindingResult();
++
++        String[] details = result.getFieldErrors().stream()
++                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
++                .toArray(String[]::new);
++
++        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, details);
++    }
++
+     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
+     @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
+     public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e) {
+@@ -53,13 +69,14 @@
+     }
+ 
+     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
+-    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
++    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, String... details) {
+         Throwable rootCause = ValidationUtil.getRootCause(e);
+         if (logException) {
+             log.error(errorType + " at request " + req.getRequestURL(), rootCause);
+         } else {
+             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
+         }
+-        return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
++        return new ErrorInfo(req.getRequestURL(), errorType,
++                details.length != 0 ? details : new String[]{rootCause.toString()});
+     }
+ }
+\ No newline at end of file
+Index: src/main/webapp/resources/js/topjava.common.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/resources/js/topjava.common.js	(revision 86fe3cc4a7fa688e94e3a500c56b260601d98224)
++++ src/main/webapp/resources/js/topjava.common.js	(date 1576706542007)
+@@ -98,7 +98,7 @@
+     closeNoty();
+     var errorInfo = JSON.parse(jqXHR.responseText);
+     failedNote = new Noty({
+-        text: "<span class='fa fa-lg fa-exclamation-circle'></span> &nbsp;" + i18n["common.errorStatus"] + ": " + jqXHR.status + "<br>" + errorInfo.type + "<br>" + errorInfo.detail,
++        text: "<span class='fa fa-lg fa-exclamation-circle'></span> &nbsp;" + i18n["common.errorStatus"] + ": " + jqXHR.status + "<br>" + errorInfo.type + "<br>" + errorInfo.details.join("<br>"),
+         type: "error",
+         layout: "bottomRight"
+     }).show();

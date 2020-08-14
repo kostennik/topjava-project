@@ -1,0 +1,225 @@
+Index: src/main/webapp/test.html
+===================================================================
+--- src/main/webapp/test.html	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/webapp/test.html	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
+@@ -1,13 +0,0 @@
+-<html>
+-<link rel="stylesheet" href="resources/css/style.css">
+-<link rel="stylesheet" href="webjars/bootstrap/4.1.0/css/bootstrap.min.css">
+-<link rel="shortcut icon" href="resources/images/icon-meal.png">
+-<body>
+-<hr/>
+-<ul>
+-    <li><a href="users">User list</a></li>
+-    <li><a href="meals">Meal list</a></li>
+-</ul>
+-<hr/>
+-</body>
+-</html>
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/util/exception/ErrorType.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/exception/ErrorType.java	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/java/ru/javawebinar/topjava/util/exception/ErrorType.java	(date 1576700102860)
+@@ -1,18 +1,28 @@
+ package ru.javawebinar.topjava.util.exception;
+ 
++import org.springframework.http.HttpStatus;
++
+ public enum ErrorType {
+-    APP_ERROR("error.appError"),
+-    DATA_NOT_FOUND("error.dataNotFound"),
+-    DATA_ERROR("error.dataError"),
+-    VALIDATION_ERROR("error.validationError");
++    APP_ERROR("error.appError", HttpStatus.INTERNAL_SERVER_ERROR),
++    //  http://stackoverflow.com/a/22358422/548473
++    DATA_NOT_FOUND("error.dataNotFound", HttpStatus.UNPROCESSABLE_ENTITY),
++    DATA_ERROR("error.dataError", HttpStatus.CONFLICT),
++    VALIDATION_ERROR("error.validationError", HttpStatus.UNPROCESSABLE_ENTITY),
++    WRONG_REQUEST("error.wrongRequest", HttpStatus.BAD_REQUEST);
+ 
+     private final String errorCode;
++    private final HttpStatus status;
+ 
+-    ErrorType(String errorCode) {
++    ErrorType(String errorCode, HttpStatus status) {
+         this.errorCode = errorCode;
++        this.status = status;
+     }
+ 
+     public String getErrorCode() {
+         return errorCode;
+     }
++
++    public HttpStatus getStatus() {
++        return status;
++    }
+ }
+Index: src/main/webapp/WEB-INF/web.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/web.xml	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/webapp/WEB-INF/web.xml	(date 1576699510282)
+@@ -30,6 +30,10 @@
+             <param-name>contextConfigLocation</param-name>
+             <param-value>classpath:spring/spring-mvc.xml</param-value>
+         </init-param>
++        <init-param>
++            <param-name>throwExceptionIfNoHandlerFound</param-name>
++            <param-value>true</param-value>
++        </init-param>
+         <load-on-startup>1</load-on-startup>
+     </servlet>
+     <servlet-mapping>
+Index: src/main/resources/spring/spring-mvc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/resources/spring/spring-mvc.xml	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/resources/spring/spring-mvc.xml	(date 1576699510247)
+@@ -11,7 +11,8 @@
+     <bean class="ru.javawebinar.topjava.web.json.JacksonObjectMapper" id="objectMapper" factory-method="getMapper"/>
+ 
+     <!-- serve static resources (*.html, ...) from src/main/webapp/ -->
+-    <mvc:default-servlet-handler/>
++    <!--https://stackoverflow.com/a/44393203/548473-->
++    <!--<mvc:default-servlet-handler/>-->
+ 
+     <security:global-method-security secured-annotations="enabled" pre-post-annotations="enabled"/>
+ 
+Index: config/messages/app.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app.properties	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ config/messages/app.properties	(date 1576699510296)
+@@ -56,6 +56,7 @@
+ error.dataNotFound=Data not found
+ error.dataError=Data error
+ error.validationError=Validation error
++error.wrongRequest=Wrong request
+ 
+ NotEmpty=[{0}] must not be empty
+ NotBlank=[{0}] must not be empty
+Index: src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/java/ru/javawebinar/topjava/web/ExceptionInfoHandler.java	(date 1576699510277)
+@@ -93,12 +93,7 @@
+ 
+     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
+     private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, String... details) {
+-        Throwable rootCause = ValidationUtil.getRootCause(e);
+-        if (logException) {
+-            log.error(errorType + " at request " + req.getRequestURL(), rootCause);
+-        } else {
+-            log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
+-        }
++        Throwable rootCause = ValidationUtil.logAndGetRootCause(log, req, e, logException, errorType);
+         return new ErrorInfo(req.getRequestURL(), errorType,
+                 messageUtil.getMessage(errorType.getErrorCode()),
+                 details.length != 0 ? details : new String[]{ValidationUtil.getMessage(rootCause)});
+Index: config/messages/app_ru.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app_ru.properties	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ config/messages/app_ru.properties	(date 1576699510303)
+@@ -58,6 +58,7 @@
+ error.dataNotFound=Данные не найдены
+ error.dataError=Ошибка в данных
+ error.validationError=Ошибка проверки данных
++error.wrongRequest=Неверный запрос
+ 
+ NotEmpty=[{0}] не должно быть пустым
+ NotBlank=[{0}] не должно быть пустым
+Index: src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/java/ru/javawebinar/topjava/util/ValidationUtil.java	(date 1576699510264)
+@@ -1,9 +1,12 @@
+ package ru.javawebinar.topjava.util;
+ 
++import org.slf4j.Logger;
+ import ru.javawebinar.topjava.HasId;
++import ru.javawebinar.topjava.util.exception.ErrorType;
+ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
+ import ru.javawebinar.topjava.util.exception.NotFoundException;
+ 
++import javax.servlet.http.HttpServletRequest;
+ import javax.validation.*;
+ import java.util.Set;
+ 
+@@ -77,4 +80,14 @@
+             throw new ConstraintViolationException(violations);
+         }
+     }
++
++    public static Throwable logAndGetRootCause(Logger log, HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
++        Throwable rootCause = ValidationUtil.getRootCause(e);
++        if (logException) {
++            log.error(errorType + " at request " + req.getRequestURL(), rootCause);
++        } else {
++            log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
++        }
++        return rootCause;
++    }
+ }
+\ No newline at end of file
+Index: src/main/java/ru/javawebinar/topjava/web/GlobalExceptionHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/GlobalExceptionHandler.java	(revision 589a8b7e1036b2062ad1f7bf472d95354a1f6cd6)
++++ src/main/java/ru/javawebinar/topjava/web/GlobalExceptionHandler.java	(date 1576700102874)
+@@ -7,6 +7,7 @@
+ import org.springframework.web.bind.annotation.ControllerAdvice;
+ import org.springframework.web.bind.annotation.ExceptionHandler;
+ import org.springframework.web.servlet.ModelAndView;
++import org.springframework.web.servlet.NoHandlerFoundException;
+ import ru.javawebinar.topjava.AuthorizedUser;
+ import ru.javawebinar.topjava.util.ValidationUtil;
+ import ru.javawebinar.topjava.util.exception.ErrorType;
+@@ -21,15 +22,24 @@
+     @Autowired
+     private MessageUtil messageUtil;
+ 
++    @ExceptionHandler(NoHandlerFoundException.class)
++    public ModelAndView wrongRequest(HttpServletRequest req, NoHandlerFoundException e) throws Exception {
++        return logAndGetExceptionView(req, e, false, ErrorType.WRONG_REQUEST);
++    }
++
+     @ExceptionHandler(Exception.class)
+     public ModelAndView defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
+         log.error("Exception at request " + req.getRequestURL(), e);
+-        Throwable rootCause = ValidationUtil.getRootCause(e);
++        return logAndGetExceptionView(req, e, true, ErrorType.APP_ERROR);
++    }
+ 
+-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
++    private ModelAndView logAndGetExceptionView(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
++        Throwable rootCause = ValidationUtil.logAndGetRootCause(log, req, e, logException, errorType);
++
++        HttpStatus httpStatus = errorType.getStatus();
+         ModelAndView mav = new ModelAndView("exception",
+                 Map.of("exception", rootCause, "message", ValidationUtil.getMessage(rootCause),
+-                        "typeMessage", messageUtil.getMessage(ErrorType.APP_ERROR.getErrorCode()),
++                        "typeMessage", messageUtil.getMessage(errorType.getErrorCode()),
+                         "status", httpStatus));
+         mav.setStatus(httpStatus);
+ 

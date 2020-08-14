@@ -1,0 +1,204 @@
+Index: src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/test/java/ru/javawebinar/topjava/web/json/JsonUtilTest.java	(date 1576675682236)
+@@ -32,7 +32,7 @@
+     }
+ 
+     @Test
+-    void testWriteOnlyAccess() throws Exception {
++    void writeOnlyAccess() throws Exception {
+         String json = JsonUtil.writeValue(UserTestData.USER);
+         System.out.println(json);
+         assertThat(json, not(containsString("password")));
+Index: src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/main/java/ru/javawebinar/topjava/web/meal/MealUIController.java	(date 1576704553750)
+@@ -3,6 +3,7 @@
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.MediaType;
+ import org.springframework.http.ResponseEntity;
++import org.springframework.lang.Nullable;
+ import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import ru.javawebinar.topjava.model.Meal;
+@@ -33,7 +34,7 @@
+     @Override
+     @DeleteMapping(value = "/{id}")
+     @ResponseStatus(value = HttpStatus.NO_CONTENT)
+-    public void delete(@PathVariable("id") int id) {
++    public void delete(@PathVariable int id) {
+         super.delete(id);
+     }
+ 
+@@ -55,10 +56,10 @@
+     @Override
+     @GetMapping(value = "/filter", produces = MediaType.APPLICATION_JSON_VALUE)
+     public List<MealTo> getBetween(
+-            @RequestParam(value = "startDate", required = false) LocalDate startDate,
+-            @RequestParam(value = "startTime", required = false) LocalTime startTime,
+-            @RequestParam(value = "endDate", required = false) LocalDate endDate,
+-            @RequestParam(value = "endTime", required = false) LocalTime endTime) {
++            @RequestParam @Nullable LocalDate startDate,
++            @RequestParam @Nullable LocalTime startTime,
++            @RequestParam @Nullable LocalDate endDate,
++            @RequestParam @Nullable LocalTime endTime) {
+         return super.getBetween(startDate, startTime, endDate, endTime);
+     }
+ }
+\ No newline at end of file
+Index: config/messages/app.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app.properties	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ config/messages/app.properties	(date 1576704442169)
+@@ -1,4 +1,9 @@
+ app.title=Calories management
++app.stackTitle=Application stack:
++app.description=<a href="https://github.com/JavaOPs/topjava">Java Enterprise project</a> with registration/authorization and role-based access rights (USER, ADMIN). \
++Admin could create/edit/delete users, users - manage your profile and data (meals) via UI (AJAX) and REST with basic authorization. \
++Meals could be filtered by date and time. Meal record color depends on daily calories sum exceeding "Daily calorie limit" (editable user's profile paramets). \
++All REST interface covered with JUnit tests by Spring MVC Test и Spring Security Test.
+ app.footer=Internship <a href="https://github.com/JavaOPs/topjava" target=_blank>Spring 5/JPA Enterprise (Topjava)</a> application
+ app.login=Login as
+ app.profile=profile
+Index: config/messages/app_ru.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- config/messages/app_ru.properties	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ config/messages/app_ru.properties	(date 1576704442169)
+@@ -1,4 +1,9 @@
+ app.title=Подсчет калорий
++app.stackTitle=Стек технологий:
++app.description=<a href="https://github.com/JavaOPs/topjava">Java Enterprise проект</a> с регистрацией/авторизацией и правами доступа на основе ролей (USER, ADMIN). \
++Администратор может создавать/редактировать/удалять пользователей, а пользователи - управлять своим профилем и данными (едой) через UI (по AJAX) и по REST интерфейсу с базовой авторизацией. \
++Возможна фильтрация еды по датам и времени. Цвет записи таблицы еды зависит от того, превышает ли сумма калорий за день норму (редактируемый параметр в профиле пользователя). \
++Весь REST интерфейс покрывается JUnit тестами, используя Spring MVC Test и Spring Security Test.
+ app.footer=Приложение стажировки <a href="https://github.com/JavaOPs/topjava" target=_blank>Spring 5/JPA Enterprise (Topjava)</a>
+ app.login=Зайти как
+ app.profile=профиль
+Index: src/main/webapp/WEB-INF/jsp/login.jsp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/jsp/login.jsp	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/main/webapp/WEB-INF/jsp/login.jsp	(date 1576689765602)
+@@ -27,7 +27,7 @@
+                 </button>
+             </div>
+         </sec:authorize>
+-        <div class="lead py-4">Стек технологий: <br>
++        <div class="lead py-4"><spring:message code="app.stackTitle"/> <br>
+             <a href="http://projects.spring.io/spring-security/">Spring Security</a>,
+             <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html">Spring MVC</a>,
+             <a href="http://projects.spring.io/spring-data-jpa/">Spring Data JPA</a>,
+@@ -52,15 +52,7 @@
+         </div>
+     </div>
+ </div>
+-<div class="container lead">
+-    &nbsp;&nbsp;&nbsp;<a href="https://github.com/JavaOPs/topjava">Java Enterprise проект</a> с
+-    регистрацией/авторизацией и интерфейсом на основе ролей (USER, ADMIN).
+-    Администратор может создавать/редактировать/удалять пользователей, а пользователи - управлять своим
+-    профилем и данными (день, еда, калории) через UI (по AJAX) и по REST интерфейсу с базовой авторизацией.
+-    Возможна фильтрация данных по датам и времени, при этом цвет записи таблицы еды зависит от того, превышает ли
+-    сумма
+-    калорий за день норму (редактируемый параметр в профиле пользователя).
+-    Весь REST интерфейс покрывается JUnit тестами, используя Spring MVC Test и Spring Security Test.
++<div class="container lead"><spring:message code="app.description"/>
+ </div>
+ <jsp:include page="fragments/footer.jsp"/>
+ <script type="text/javascript">
+Index: src/main/webapp/WEB-INF/jsp/meals.jsp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/jsp/meals.jsp	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/main/webapp/WEB-INF/jsp/meals.jsp	(date 1576673192593)
+@@ -71,7 +71,7 @@
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h4 class="modal-title" id="modalTitle"></h4>
+-                <button type="button" class="close" data-dismiss="modal">&times;</button>
++                <button type="button" class="close" data-dismiss="modal" onclick="closeNoty()">&times;</button>
+             </div>
+             <div class="modal-body">
+                 <form id="detailsForm">
+@@ -97,7 +97,7 @@
+                 </form>
+             </div>
+             <div class="modal-footer">
+-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
++                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeNoty()">
+                     <span class="fa fa-close"></span>
+                     <spring:message code="common.cancel"/>
+                 </button>
+Index: src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/test/java/ru/javawebinar/topjava/web/ResourceControllerTest.java	(date 1576705278034)
+@@ -14,7 +14,7 @@
+     }
+ 
+     @Test
+-    void testResources() throws Exception {
++    void resources() throws Exception {
+         perform(doGet())
+                 .andDo(print())
+                 .andExpect(content().contentType(MediaType.valueOf("text/css")))
+Index: src/main/webapp/resources/js/topjava.common.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/resources/js/topjava.common.js	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/main/webapp/resources/js/topjava.common.js	(date 1576704442182)
+@@ -63,6 +63,7 @@
+ }
+ 
+ function save() {
++    closeNoty();
+     $.ajax({
+         type: "POST",
+         url: context.ajaxUrl,
+Index: src/main/webapp/WEB-INF/jsp/users.jsp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/webapp/WEB-INF/jsp/users.jsp	(revision e1c2e887e17eefd452b5f02592f22cab5be12a0a)
++++ src/main/webapp/WEB-INF/jsp/users.jsp	(date 1576673192577)
+@@ -38,7 +38,7 @@
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h4 class="modal-title" id="modalTitle"></h4>
+-                <button type="button" class="close" data-dismiss="modal">&times;</button>
++                <button type="button" class="close" data-dismiss="modal" onclick="closeNoty()">&times;</button>
+             </div>
+             <div class="modal-body">
+                 <form id="detailsForm">
+@@ -64,7 +64,7 @@
+                 </form>
+             </div>
+             <div class="modal-footer">
+-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
++                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeNoty()">
+                     <span class="fa fa-close"></span>
+                     <spring:message code="common.cancel"/>
+                 </button>
